@@ -10,42 +10,84 @@ namespace Area_Finder_Too
 {
     class WorkingImage
     {
-        protected Bitmap innitialBitmap;
-        public Bitmap backgroundOutput, foregroundOutput;
+        public Bitmap innitialBitmap;
+        public Bitmap baseBitmap;
+        public Bitmap outputBitmap;
+        //public int Width, Height;
 
-        public void InitializeBitmaps(string _fileName, PaintEventArgs e)
+        public WorkingImage(string _fileName)
         {
-            innitialBitmap = new Bitmap(_fileName);
-            backgroundOutput = (Bitmap)innitialBitmap.Clone();
-            e.Graphics.DrawImage(backgroundOutput, 0, 0, backgroundOutput.Width, backgroundOutput.Height);
-            Rectangle transparentRectangle = new Rectangle(0, 0, backgroundOutput.Width, backgroundOutput.Height);
+            baseBitmap = new Bitmap(_fileName);
+            outputBitmap = (Bitmap)baseBitmap.Clone();
+            
+            /*Rectangle transparentRectangle = new Rectangle(0, 0, outputBitmap.Width, outputBitmap.Height);
             Brush transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
             using (Graphics g = Graphics.FromImage(foregroundOutput))
                 g.FillRectangle(transparentBrush, transparentRectangle);
-            foregroundOutput.MakeTransparent();
+            foregroundOutput.MakeTransparent();*/
         }
 
-        public void RedrawBackground()
+        public void Draw(Graphics g_canvas)
+        {
+            g_canvas.DrawImage(outputBitmap, 0, 0, outputBitmap.Width, outputBitmap.Height);
+        }
+
+        /*public void RedrawForeground()
+        {
+
+        }*/
+
+        public int Width()
+        {
+            return outputBitmap.Width;
+        }
+        public int Height()
+        {
+            return outputBitmap.Height;
+        }
+
+        public void SetPixelRatio(double pixelRatio)
         {
 
         }
 
-        public void RedrawForeground()
+        public string SelectionInfo()
+        {
+            return "";
+        }
+
+        public void UpdateOutputBitmap(Point mouseLocation)
         {
 
         }
 
-        public void AddSeaColor(Point _mouseXY = new Point())
+        public void SetRectanglePoint()
         {
-            Color seaColor = mainBitmap.GetPixel(_mouseXY.X, _mouseXY.Y);
-            for (int x = 0; x < mainBitmap.Width; x++)
-                for (int y = 0; y < mainBitmap.Height; y++)
-                    if ((mainBitmap.GetPixel(x, y).R >= seaColor.R - 15 && mainBitmap.GetPixel(x, y).R <= seaColor.R + 15) && (mainBitmap.GetPixel(x, y).G >= seaColor.G - 15 && mainBitmap.GetPixel(x, y).G <= seaColor.G + 15) && (mainBitmap.GetPixel(x, y).B >= seaColor.B - 15 && mainBitmap.GetPixel(x, y).B <= seaColor.B + 15))
-                        mainBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
+
+        }
+
+        public void SetArbitraryPoint()
+        {
+
+        }
+
+        public void AddSeaColor()
+        {
+            Color seaColor = baseBitmap.GetPixel(_mouseXY.X, _mouseXY.Y);
+            for (int x = 0; x < baseBitmap.Width; x++)
+                for (int y = 0; y < baseBitmap.Height; y++)
+                    if ((baseBitmap.GetPixel(x, y).R >= seaColor.R - 15 && baseBitmap.GetPixel(x, y).R <= seaColor.R + 15) && (baseBitmap.GetPixel(x, y).G >= seaColor.G - 15 && baseBitmap.GetPixel(x, y).G <= seaColor.G + 15) && (baseBitmap.GetPixel(x, y).B >= seaColor.B - 15 && baseBitmap.GetPixel(x, y).B <= seaColor.B + 15))
+                        baseBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
+        }
+
+        public void SetCenterPoint()
+        {
+
         }
     }
 
-    interface IFigure
+
+    /*public interface IFigure
     {
         int area { get; set; }
         int landArea { get; set; }
@@ -55,9 +97,9 @@ namespace Area_Finder_Too
         Point landCenter { get; set; }
     }
 
-    class RectangularFigure : IFigure
+    public class RectangularFigure : IFigure
     {
-        int IFigure.area { get; set; }
+        public int area { get; set; }
         area = 0;
         int IFigure.landArea { get; set; }
         int IFigure.cost { get; set; }
@@ -71,5 +113,5 @@ namespace Area_Finder_Too
     {
         private int area = 0, landArea = 0, cost = 0;
         private List<Point> listOfArbPoints = new List<Point>();
-    }
+    }*/
 }

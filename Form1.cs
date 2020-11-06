@@ -14,22 +14,22 @@ namespace Area_Finder_Too
 {
     public partial class Form1 : Form
     {
-        readonly OpenFileDialog open = new OpenFileDialog();
-        readonly Selection select = new Selection();
-        Point mouseXY = new Point();
+        OpenFileDialog open = new OpenFileDialog();
+        Graphics g_canvas = null;
+        WorkingImage workingImage;
+        Point mouseLocation = new Point();
      
         public Form1()
         {
+            InitializeComponent();
+
             if (open.ShowDialog() == DialogResult.OK)
-            {
-                select.OpenImage(open.FileName);
-                select.RecreateOutputBitmapFromMain();
-                select.RecreateArbBitmap();
-                InitializeComponent();
-                pictureBox1.Width = select.outputBitmap.Width;
-                pictureBox1.Height = select.outputBitmap.Height;
-                this.Size = new Size(select.outputBitmap.Width + 14, select.outputBitmap.Height + 39);
-                pictureBox1.Image = select.outputBitmap;
+            {   
+                this.Size = new Size(new Bitmap(open.FileName).Width + 14, new Bitmap(open.FileName).Height + 39);
+                pictureBox1.Dock = DockStyle.Fill;
+                workingImage = new WorkingImage(open.FileName);
+                //selection.RecreateArbBitmap();
+                //pictureBox1.Image = workingImage.baseBitmap;
             }
         }
 
@@ -40,87 +40,84 @@ namespace Area_Finder_Too
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.KeyData.ToString() == "C")
+            if (e.KeyData.ToString() == "C")
             {
-                select.SetCenter(mouseXY);
+                workingImage.SetCenterPoint();
+
+                /*select.SetCenter(mouseXY);
                 select.CalculateCost();
                 pictureBox1.Image = select.outputBitmap;
-                this.Text = select.selectionInfo;
+                this.Text = select.selectionInfo;*/
             }
 
             if (e.KeyData.ToString() == "R" && !numericUpDown1.Enabled)
-            {
-                for (int i = -36; i <= 0; i++)
-                {
-                    panel1.Location = new Point(0, i);
-                    Thread.Sleep(5);
-                }
-                numericUpDown1.Enabled = true;
-                numericUpDown1.Focus();
-            }
+                ActivateNumeric();
         }
 
         private void numericUpDown1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData.ToString() == "R" || e.KeyData.ToString() == "Return")
-            {
-                numericUpDown1.Enabled = false;
-                for (int i = 0; i >= -36; i--)
-                {
-                    panel1.Location = new Point(0, i);
-                    Thread.Sleep(5);
-                }
-                this.Focus();
-                select.pixelRatio = (double)numericUpDown1.Value;
-            }
+                DeactivateNumeric();
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            switch (e.Button)
             {
-                if (select.currentAct == Selection.CurrentAction.NextPointArb)
-                    RecreateEverything();
-                else
-                {
-                    if (select.currentAct != Selection.CurrentAction.SecondPointRect)
-                        select.currentAct = Selection.CurrentAction.FirstPointRect;
-                    select.SetPointRect(mouseXY);
-                    pictureBox1.Image = select.outputBitmap;
-                    this.Text = select.selectionInfo;
-                }
+                case MouseButtons.Left:
+                    workingImage.SetRectanglePoint();
+                    break;
+                case MouseButtons.Right:
+                    workingImage.SetArbitraryPoint();
+                    break;
+                case MouseButtons.Middle:
+                    workingImage.AddSeaColor();
+                    break;
             }
-            else if (e.Button == MouseButtons.Right)
-            {
-                if (select.currentAct == Selection.CurrentAction.SecondPointRect)
-                    RecreateEverything();
-                else
-                {
-                    if (select.currentAct != Selection.CurrentAction.NextPointArb)
-                        select.currentAct = Selection.CurrentAction.FirstPointArb;
-                    select.SetPointArb(mouseXY);
-                    pictureBox1.Image = select.outputBitmap;
-                    this.Text = select.selectionInfo;
-                }   
-            }
-            else if (e.Button == MouseButtons.Middle)
-            {
-                select.AddSeaColor(mouseXY);
+            //Left
+
+            /*if (select.currentAct == Selection.CurrentAction.NextPointArb)
                 RecreateEverything();
-            }
+            else
+            {
+                if (select.currentAct != Selection.CurrentAction.SecondPointRect)
+                    select.currentAct = Selection.CurrentAction.FirstPointRect;
+                select.SetPointRect(mouseXY);
+                pictureBox1.Image = select.outputBitmap;
+                this.Text = select.selectionInfo;
+            }*/
+
+            //Right
+
+            /*if (select.currentAct == Selection.CurrentAction.SecondPointRect)
+                RecreateEverything();
+            else
+            {
+                if (select.currentAct != Selection.CurrentAction.NextPointArb)
+                    select.currentAct = Selection.CurrentAction.FirstPointArb;
+                select.SetPointArb(mouseXY);
+                pictureBox1.Image = select.outputBitmap;
+                this.Text = select.selectionInfo;
+            }*/
+
+            //Middle
+
+            /*select.AddSeaColor(mouseXY);
+            RecreateEverything();*/
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            mouseXY.X = e.X;
-            mouseXY.Y = e.Y;
-            select.UpdateOutputBitmap(mouseXY);
-            pictureBox1.Image = select.outputBitmap;
-            this.Text = select.selectionInfo;                
+            mouseLocation.X = e.X;
+            mouseLocation.Y = e.Y;
+            workingImage.UpdateOutputBitmap(mouseLocation);
+
+            //pictureBox1.Image = workingImage.outputBitmap;
+            this.Text = workingImage.SelectionInfo();
         }
 
-        private void RecreateEverything()
+        /*private void RecreateEverything()
         {
             select.currentAct = Selection.CurrentAction.StayingStill;
             select.RecreateOutputBitmapFromMain();
@@ -128,6 +125,38 @@ namespace Area_Finder_Too
             pictureBox1.Image = select.outputBitmap;
             select.selectionInfo = "Area Finder";
             this.Text = select.selectionInfo;
+        }*/
+
+        private void ActivateNumeric()
+        {
+            for (int i = -36; i <= 0; i++)
+            {
+                panel1.Location = new Point(0, i);
+                Thread.Sleep(5);
+            }
+            numericUpDown1.Enabled = true;
+            numericUpDown1.Focus();
+        }
+
+        private void DeactivateNumeric()
+        {
+            numericUpDown1.Enabled = false;
+            for (int i = 0; i >= -36; i--)
+            {
+                panel1.Location = new Point(0, i);
+                Thread.Sleep(5);
+            }
+            this.Focus();
+            workingImage.SetPixelRatio((double)numericUpDown1.Value);
+        }
+
+        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+        {
+            if (g_canvas == null)
+            {
+                g_canvas = pictureBox1.CreateGraphics();
+                workingImage.Draw(e.Graphics);
+            }
         }
     }
 }

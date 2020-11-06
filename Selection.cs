@@ -10,15 +10,13 @@ using System.CodeDom;
 
 namespace Area_Finder_Too
 {
-    class Selection : WorkingImage
+    class Selection
     {
-        
-        public enum CurrentAction { StayingStill, FirstPointRect, SecondPointRect, FirstPointArb, NextPointArb, LastPointArb};
+        private enum CurrentAction { StayingStill, FirstPointRect, SecondPointRect, FirstPointArb, NextPointArb, LastPointArb };
         private enum ArbPixelState { Outside, BorderToInside, Inside, BorderToOutside };
-        public CurrentAction currentAct = CurrentAction.StayingStill;
+        private CurrentAction currentAct = CurrentAction.StayingStill;
         private static double pixelRatio = 11.24;
         private static Point imageCenter = new Point(-1, -1);
-
         private List<Point> listOfLand = new List<Point>();
 
         public void SetCenter(Point _mouseXY = new Point())
@@ -241,7 +239,7 @@ namespace Area_Finder_Too
 
         public void CalculateCost(Point _mouseXY = new Point())
         {
-            if (base.imageCenter.X != -1 && listOfLand.Count() > 0)
+            if (imageCenter.X != -1 && listOfLand.Count() > 0)
             {
                 Point pixelsSum = new Point(0, 0);
                 foreach (Point pixel in listOfLand)
@@ -269,6 +267,15 @@ namespace Area_Finder_Too
             landArea = (int)Math.Floor(landArea * Math.Pow(base.pixelRatio, 2));
             area = (int)Math.Floor(Math.Abs(constPoint.X - _mouseXY.X) * Math.Abs(constPoint.Y - _mouseXY.Y) * Math.Pow(base.pixelRatio, 2));
             selectionInfo = "Area Found! Action: " + currentAct + "; Total Area = " + area + "; Land Area = " + landArea + "; Cost = " + cost + ";";
+        }
+
+        public void AddSeaColor(Point _mouseXY = new Point())
+        {
+            Color seaColor = baseBitmap.GetPixel(_mouseXY.X, _mouseXY.Y);
+            for (int x = 0; x < baseBitmap.Width; x++)
+                for (int y = 0; y < baseBitmap.Height; y++)
+                    if ((baseBitmap.GetPixel(x, y).R >= seaColor.R - 15 && baseBitmap.GetPixel(x, y).R <= seaColor.R + 15) && (baseBitmap.GetPixel(x, y).G >= seaColor.G - 15 && baseBitmap.GetPixel(x, y).G <= seaColor.G + 15) && (baseBitmap.GetPixel(x, y).B >= seaColor.B - 15 && baseBitmap.GetPixel(x, y).B <= seaColor.B + 15))
+                        baseBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
         }
     }
 }
