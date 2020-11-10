@@ -19,10 +19,14 @@ namespace Area_Finder_Too
             }
         }
 
+        List<Selection> selections = new List<Selection>();
+
         //private List
 
         private Point imageCenter = new Point(-1, -1);
         private double pixelRatio = 11.24;
+        private enum WorkingState { Idle, WorkingOnSelection };
+        private WorkingState workingState = WorkingState.Idle;
 
         //Graphics received_canvas = null;
         //public int Width, Height;
@@ -103,48 +107,76 @@ namespace Area_Finder_Too
             this.imageCenter = mouseLocation;
         }
 
-        /*public void InvalidateCanvas(List<Point> pointsToInvalidate)
+        public void MouseClick(Point mouseLocation, MouseButtons mouseButton)
         {
-            //g_canvas.
-        }
+            if (mouseButton == MouseButtons.Middle)
+                AddSeaColor(mouseLocation);
+            else    //Find out what control wants to do with selections
+            {   
+                switch (this.workingState)
+                {
+                    case WorkingState.Idle:
+                        if (mouseButton == MouseButtons.Left) 
+                            this.selections.Add(new Selection(Selection.KindOfSelection.Rectangular, mouseLocation));   //Create rectangular selection
+                        else 
+                            this.selections.Add(new Selection(Selection.KindOfSelection.Arbitrary, mouseLocation));    //Create arbitrary selection
+                        break;
 
-        public void InvalidateCanvas(Region regionToInvalidate)
-        {
+                    case WorkingState.WorkingOnSelection:
+                        if (mouseButton == MouseButtons.Left)   //Make something with rectangular selection
+                            if (selections.Last().kindOfSelection == Selection.KindOfSelection.Rectangular)
+                                Console.WriteLine("Make something;");
+                            else    //Make something with arbitrary selection
+                                this.selections.Add(new Selection(Selection.KindOfSelection.Arbitrary, mouseLocation));
+                        break;
+                }
+            }
             
+            
+            //Last selection in Selections is selection in work
+
+            //Make to them corresponding changes
+
+            //UpdateOutputBitmap
+
+            /*landArea = 0;
+            listOfLand.Clear();
+            switch (currentAct)
+            {
+                case CurrentAction.FirstPointRect:
+                    constPoint.X = _mouseXY.X; constPoint.Y = _mouseXY.Y;
+                    for (int x = constPoint.X - 1; x <= constPoint.X + 1; x++)
+                        for (int y = constPoint.Y - 1; y <= constPoint.Y + 1; y++)
+                            base.outputBitmap.SetPixel(x, y, Color.Cyan);
+                    currentAct = CurrentAction.SecondPointRect;
+                    break;
+
+                case CurrentAction.SecondPointRect:
+                    currentAct = CurrentAction.StayingStill;
+                    for (int x = topLeftPoint.X; x < topLeftPoint.X + Math.Abs(constPoint.X - _mouseXY.X); x++)
+                    {
+                        for (int y = topLeftPoint.Y; y < topLeftPoint.Y + Math.Abs(constPoint.Y - _mouseXY.Y); y++)
+                        {
+                            if (base.mainBitmap.GetPixel(x, y) != Color.FromArgb(255, 16, 89))
+                            {
+                                base.outputBitmap.SetPixel(x, y, Color.LightGreen);
+                                listOfLand.Add(new Point(x, y));
+                                landArea++;
+                            }
+                        }
+                    }
+                    CalculateCost(_mouseXY);
+                    break;
+
+                default:
+                    break;
+            }*/
         }
 
-        public void InvalidateCanvas()
+        public void MouseMove(Point mouseLocation)
         {
 
-        }*/
+        }
     }
 
-
-    /*public interface IFigure
-    {
-        int area { get; set; }
-        int landArea { get; set; }
-        int cost { get; set; }
-        string selectionInfo { get; set; }
-
-        Point landCenter { get; set; }
-    }
-
-    public class RectangularFigure : IFigure
-    {
-        public int area { get; set; }
-        area = 0;
-        int IFigure.landArea { get; set; }
-        int IFigure.cost { get; set; }
-        string IFigure.selectionInfo { get; set; }
-        Point IFigure.landCenter { get; set; }
-
-        private Point constPoint = new Point(0, 0), topLeftPoint = new Point(0, 0);
-    }
-
-    class ArbitraryFigure : IFigure
-    {
-        private int area = 0, landArea = 0, cost = 0;
-        private List<Point> listOfArbPoints = new List<Point>();
-    }*/
 }

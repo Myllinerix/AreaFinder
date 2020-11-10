@@ -39,21 +39,27 @@ namespace Area_Finder_Too
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyData.ToString() == "C")
+            switch (e.KeyData.ToString())
             {
-                workingImage.SetCenterPoint(mouseLocation);
-                
-                /*select.SetCenter(mouseXY);
-                select.CalculateCost();
-                pictureBox1.Image = select.outputBitmap;
-                this.Text = select.selectionInfo;*/
+                case "C":
+                    workingImage.SetCenterPoint(mouseLocation);
+
+                    /*select.SetCenter(mouseXY);
+                    select.CalculateCost();
+                    pictureBox1.Image = select.outputBitmap;
+                    this.Text = select.selectionInfo;*/
+                    break;
+                case "E":
+                    Random random = new Random();
+                    Color randomColor = new Color();
+                    randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+                    Graphics.FromImage(workingImage.Bitmap).FillRectangle(new SolidBrush(randomColor), mouseLocation.X, mouseLocation.Y, 2000, 2000);
+                    break;
+                case "R":
+                    if (!numericUpDown1.Enabled)
+                        ActivateNumeric();
+                    break;
             }
-
-            if (e.KeyData.ToString() == "E")
-                Graphics.FromImage(workingImage.Bitmap).FillRectangle(new SolidBrush(Color.Blue), mouseLocation.X, mouseLocation.Y, 200, 200);
-
-            if (e.KeyData.ToString() == "R" && !numericUpDown1.Enabled)
-                ActivateNumeric();
         }
 
         private void numericUpDown1_KeyDown(object sender, KeyEventArgs e)
@@ -62,11 +68,11 @@ namespace Area_Finder_Too
                 DeactivateNumeric();
         }
 
-        private void pictureBox111_MouseClick(object sender, MouseEventArgs e)
+        /*private void pictureBox111_MouseClick(object sender, MouseEventArgs e)
         {
             //Left
 
-            /*if (select.currentAct == Selection.CurrentAction.NextPointArb)
+            if (select.currentAct == Selection.CurrentAction.NextPointArb)
                 RecreateEverything();
             else
             {
@@ -75,11 +81,11 @@ namespace Area_Finder_Too
                 select.SetPointRect(mouseXY);
                 pictureBox1.Image = select.outputBitmap;
                 this.Text = select.selectionInfo;
-            }*/
+            }
 
             //Right
 
-            /*if (select.currentAct == Selection.CurrentAction.SecondPointRect)
+            if (select.currentAct == Selection.CurrentAction.SecondPointRect)
                 RecreateEverything();
             else
             {
@@ -88,13 +94,13 @@ namespace Area_Finder_Too
                 select.SetPointArb(mouseXY);
                 pictureBox1.Image = select.outputBitmap;
                 this.Text = select.selectionInfo;
-            }*/
+            }
 
             //Middle
 
-            /*select.AddSeaColor(mouseXY);
-            RecreateEverything();*/
-        }
+            select.AddSeaColor(mouseXY);
+            RecreateEverything();
+        }*/
 
         /*private void RecreateEverything()
         {
@@ -139,27 +145,15 @@ namespace Area_Finder_Too
             base.OnMouseMove(e);
             mouseLocation.X = e.X;
             mouseLocation.Y = e.Y;
-            //workingImage.UpdateOutputBitmap(mouseLocation);
+            workingImage.MouseMove(mouseLocation);
 
-            //pictureBox1.Image = workingImage.outputBitmap;
-            this.Text = workingImage.SelectionInfo();
+            pictureBox1.Image = workingImage.Bitmap;
+            //this.Text = workingImage.SelectionInfo();
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    workingImage.SetRectanglePoint();
-                    break;
-                case MouseButtons.Right:
-                    workingImage.SetArbitraryPoint();
-                    break;
-                case MouseButtons.Middle:
-                    workingImage.AddSeaColor(mouseLocation);
-                    MessageBox.Show("123");
-                    break;
-            }
+            workingImage.MouseClick(mouseLocation, e.Button);
         }
     }
 }
