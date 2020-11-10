@@ -10,15 +10,27 @@ namespace Area_Finder_Too
 {
     class WorkingImage
     {
-        public Bitmap innitialBitmap;
-        public Bitmap baseBitmap;
-        public Bitmap outputBitmap;
+        private Bitmap baseBitmap, outputBitmap;
+        public Bitmap Bitmap
+        {
+            get
+            {
+                return this.outputBitmap;
+            }
+        }
+
+        //private List
+
+        private Point imageCenter = new Point(-1, -1);
+        private double pixelRatio = 11.24;
+
+        //Graphics received_canvas = null;
         //public int Width, Height;
 
         public WorkingImage(string _fileName)
         {
-            baseBitmap = new Bitmap(_fileName);
-            outputBitmap = (Bitmap)baseBitmap.Clone();
+            this.baseBitmap = new Bitmap(_fileName);
+            this.outputBitmap = (Bitmap)this.baseBitmap.Clone();
             
             /*Rectangle transparentRectangle = new Rectangle(0, 0, outputBitmap.Width, outputBitmap.Height);
             Brush transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
@@ -27,36 +39,22 @@ namespace Area_Finder_Too
             foregroundOutput.MakeTransparent();*/
         }
 
-        public void Draw(Graphics g_canvas)
-        {
-            g_canvas.DrawImage(outputBitmap, 0, 0, outputBitmap.Width, outputBitmap.Height);
-        }
-
         /*public void RedrawForeground()
         {
 
         }*/
 
-        public int Width()
+        public void SetPixelRatio(double received_Ratio)
         {
-            return outputBitmap.Width;
-        }
-        public int Height()
-        {
-            return outputBitmap.Height;
-        }
-
-        public void SetPixelRatio(double pixelRatio)
-        {
-
+            this.pixelRatio = received_Ratio;
         }
 
         public string SelectionInfo()
         {
-            return "";
+            return "Something definetely happened";
         }
 
-        public void UpdateOutputBitmap(Point mouseLocation)
+        private void UpdateOutputBitmap()
         {
 
         }
@@ -71,19 +69,54 @@ namespace Area_Finder_Too
 
         }
 
-        public void AddSeaColor()
+        public void AddSeaColor(Point mouseLocation)
         {
-            Color seaColor = baseBitmap.GetPixel(_mouseXY.X, _mouseXY.Y);
-            for (int x = 0; x < baseBitmap.Width; x++)
-                for (int y = 0; y < baseBitmap.Height; y++)
-                    if ((baseBitmap.GetPixel(x, y).R >= seaColor.R - 15 && baseBitmap.GetPixel(x, y).R <= seaColor.R + 15) && (baseBitmap.GetPixel(x, y).G >= seaColor.G - 15 && baseBitmap.GetPixel(x, y).G <= seaColor.G + 15) && (baseBitmap.GetPixel(x, y).B >= seaColor.B - 15 && baseBitmap.GetPixel(x, y).B <= seaColor.B + 15))
-                        baseBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
+            Color seaColor = this.baseBitmap.GetPixel(mouseLocation.X, mouseLocation.Y);
+            for (int x = 0; x < this.baseBitmap.Width; x++)
+                for (int y = 0; y < this.baseBitmap.Height; y++)
+                    if ((this.baseBitmap.GetPixel(x, y).R >= seaColor.R - 15 && this.baseBitmap.GetPixel(x, y).R <= seaColor.R + 15) &&
+                        (this.baseBitmap.GetPixel(x, y).G >= seaColor.G - 15 && this.baseBitmap.GetPixel(x, y).G <= seaColor.G + 15) &&
+                        (this.baseBitmap.GetPixel(x, y).B >= seaColor.B - 15 && this.baseBitmap.GetPixel(x, y).B <= seaColor.B + 15))
+                        this.baseBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
         }
 
-        public void SetCenterPoint()
+        public void SetCenterPoint(Point mouseLocation)
+        {
+            /*List<Bitmap> bitmaps = new List<Bitmap>();
+            bitmaps.Add(mainBitmap);
+            bitmaps.Add(arbitraryBitmap);
+            bitmaps.Add(outputBitmap);*/
+            //foreach (Bitmap _bitmap in bitmaps)
+
+            /*if (this.imageCenter != new Point(-1, -1))
+            {
+
+            }*/
+            
+            Pen bluePen = new Pen(Color.DarkBlue, 3), whitePen = new Pen(Color.White, 5);
+            //r.DrawImage(this.outputBitmap, 0, 0, this.outputBitmap.Width, this.outputBitmap.Height);
+            Graphics outputGraphics = Graphics.FromImage(this.outputBitmap);
+            outputGraphics.DrawLine(whitePen, mouseLocation.X, mouseLocation.Y - 9, mouseLocation.X, mouseLocation.Y + 10);
+            outputGraphics.DrawLine(whitePen, mouseLocation.X - 9, mouseLocation.Y, mouseLocation.X + 10, mouseLocation.Y);
+            outputGraphics.DrawLine(bluePen, mouseLocation.X, mouseLocation.Y - 9, mouseLocation.X, mouseLocation.Y + 10);
+            outputGraphics.DrawLine(bluePen, mouseLocation.X - 9, mouseLocation.Y, mouseLocation.X + 10, mouseLocation.Y);
+            this.imageCenter = mouseLocation;
+        }
+
+        /*public void InvalidateCanvas(List<Point> pointsToInvalidate)
+        {
+            //g_canvas.
+        }
+
+        public void InvalidateCanvas(Region regionToInvalidate)
+        {
+            
+        }
+
+        public void InvalidateCanvas()
         {
 
-        }
+        }*/
     }
 
 

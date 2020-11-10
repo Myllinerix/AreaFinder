@@ -15,7 +15,6 @@ namespace Area_Finder_Too
     public partial class Form1 : Form
     {
         OpenFileDialog open = new OpenFileDialog();
-        Graphics g_canvas = null;
         WorkingImage workingImage;
         Point mouseLocation = new Point();
      
@@ -42,13 +41,16 @@ namespace Area_Finder_Too
         {
             if (e.KeyData.ToString() == "C")
             {
-                workingImage.SetCenterPoint();
-
+                workingImage.SetCenterPoint(mouseLocation);
+                
                 /*select.SetCenter(mouseXY);
                 select.CalculateCost();
                 pictureBox1.Image = select.outputBitmap;
                 this.Text = select.selectionInfo;*/
             }
+
+            if (e.KeyData.ToString() == "E")
+                Graphics.FromImage(workingImage.Bitmap).FillRectangle(new SolidBrush(Color.Blue), mouseLocation.X, mouseLocation.Y, 200, 200);
 
             if (e.KeyData.ToString() == "R" && !numericUpDown1.Enabled)
                 ActivateNumeric();
@@ -60,20 +62,8 @@ namespace Area_Finder_Too
                 DeactivateNumeric();
         }
 
-        private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
+        private void pictureBox111_MouseClick(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    workingImage.SetRectanglePoint();
-                    break;
-                case MouseButtons.Right:
-                    workingImage.SetArbitraryPoint();
-                    break;
-                case MouseButtons.Middle:
-                    workingImage.AddSeaColor();
-                    break;
-            }
             //Left
 
             /*if (select.currentAct == Selection.CurrentAction.NextPointArb)
@@ -104,17 +94,6 @@ namespace Area_Finder_Too
 
             /*select.AddSeaColor(mouseXY);
             RecreateEverything();*/
-        }
-
-        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
-        {
-            base.OnMouseMove(e);
-            mouseLocation.X = e.X;
-            mouseLocation.Y = e.Y;
-            workingImage.UpdateOutputBitmap(mouseLocation);
-
-            //pictureBox1.Image = workingImage.outputBitmap;
-            this.Text = workingImage.SelectionInfo();
         }
 
         /*private void RecreateEverything()
@@ -152,10 +131,34 @@ namespace Area_Finder_Too
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            if (g_canvas == null)
+            pictureBox1.Image = workingImage.Bitmap;
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            mouseLocation.X = e.X;
+            mouseLocation.Y = e.Y;
+            //workingImage.UpdateOutputBitmap(mouseLocation);
+
+            //pictureBox1.Image = workingImage.outputBitmap;
+            this.Text = workingImage.SelectionInfo();
+        }
+
+        private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
             {
-                g_canvas = pictureBox1.CreateGraphics();
-                workingImage.Draw(e.Graphics);
+                case MouseButtons.Left:
+                    workingImage.SetRectanglePoint();
+                    break;
+                case MouseButtons.Right:
+                    workingImage.SetArbitraryPoint();
+                    break;
+                case MouseButtons.Middle:
+                    workingImage.AddSeaColor(mouseLocation);
+                    MessageBox.Show("123");
+                    break;
             }
         }
     }
