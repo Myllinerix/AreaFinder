@@ -142,7 +142,7 @@ namespace Area_Finder_Too
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            base.OnMouseMove(e);
+            //base.OnMouseMove(e);
             mouseLocation.X = e.X;
             mouseLocation.Y = e.Y;
             workingImage.MouseMove(mouseLocation);

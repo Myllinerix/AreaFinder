@@ -12,34 +12,87 @@ namespace Area_Finder_Too
 {
     class Selection
     {
-        public enum KindOfSelection { Rectangular, Arbitrary };
-        public readonly KindOfSelection kindOfSelection;
+        public enum SelectionKinds { Rectangular, Arbitrary };
+        public readonly SelectionKinds selectionKind;
 
-        //private enum CurrentAction { StayingStill, FirstPointRect, SecondPointRect, FirstPointArb, NextPointArb, LastPointArb };
-        //private enum ArbPixelState { Outside, BorderToInside, Inside, BorderToOutside };
-        //private CurrentAction currentAct = CurrentAction.StayingStill;
+        private List<Point> listOfPoints = new List<Point>();                   //Main list of singular point (for rectangular max count = 2)
+        private List<List<Point>> listOfDotsAndLines = new List<List<Point>>(); //List of pixel belonging to outer sides of selection
+        private List<Point> listOfLand = new List<Point>();                     //Final list of land pixel (area = listOfLand.Count)
 
-        private List<Point> listOfPoints = new List<Point>();
-        private List<Point> listOfLand = new List<Point>();
-        private List<List<Point>> listOfDotsAndLines = new List<List<Point>>();
-
-        public Selection(KindOfSelection receivedKindOfSelection, Point mousePosition)
+        public Selection(SelectionKinds receivedKind, Point mousePosition)
         {
-            this.kindOfSelection = receivedKindOfSelection;
+            this.selectionKind = receivedKind;
             this.listOfPoints.Add(mousePosition);
             this.listOfDotsAndLines.Add(new List<Point>());
 
-            if (this.kindOfSelection == KindOfSelection.Rectangular)
-                for (int x = listOfPoints.Last().X - 1; x <= listOfPoints.Last().X + 1; x++)
-                    for (int y = listOfPoints.Last().Y - 1; y <= listOfPoints.Last().Y + 1; y++)
-                        listOfDotsAndLines.Last().Add(new Point(x, y));
+            if (this.selectionKind == SelectionKinds.Rectangular)
+                for (int x = this.listOfPoints.Last().X - 1; x <= this.listOfPoints.Last().X + 1; x++)
+                    for (int y = this.listOfPoints.Last().Y - 1; y <= this.listOfPoints.Last().Y + 1; y++)
+                        this.listOfDotsAndLines.Last().Add(new Point(x, y));
             else
-                for (int x = listOfPoints.Last().X - 2; x <= listOfPoints.Last().X + 2; x++)
-                    for (int y = listOfPoints.Last().Y - 2; y <= listOfPoints.Last().Y + 2; y++)
-                        listOfDotsAndLines.Last().Add(new Point(x, y));
+                for (int x = this.listOfPoints.Last().X - 2; x <= this.listOfPoints.Last().X + 2; x++)
+                    for (int y = this.listOfPoints.Last().Y - 2; y <= this.listOfPoints.Last().Y + 2; y++)
+                        this.listOfDotsAndLines.Last().Add(new Point(x, y));
         }
 
+        public void UpdateNextPointLocation(Point mousePosition)
+        {
+            switch(this.selectionKind)
+            {
+                case SelectionKinds.Rectangular:
+                    Point topLeftPoint = new Point(Math.Min(mousePosition.X, this.listOfPoints.Last().X), 
+                        Math.Min(mousePosition.Y, this.listOfPoints.Last().Y));
+                    Point bottomRightPoint = new Point(Math.Max(mousePosition.X, this.listOfPoints.Last().X), 
+                        Math.Max(mousePosition.Y, this.listOfPoints.Last().Y));
 
+                    Size sizeOfOutline = new Size(bottomRightPoint.X - topLeftPoint.X, bottomRightPoint.Y - topLeftPoint.Y);
+                    Rectangle rectangularOutline = new Rectangle(topLeftPoint, sizeOfOutline);
+                    break;
+
+                case SelectionKinds.Arbitrary:
+
+                    break;
+            }
+            
+        }
+
+        public void AddAPoint(Point mousePosition)
+        {
+            /*switch (this.selectionKind)
+            {
+                case SelectionKinds.Rectangular:
+                    this.listOfPoints.Add(mousePosition);
+                    for (int x = topLeftPoint.X; x < topLeftPoint.X + si; x++)
+                    {
+                        for (int y = topLeftPoint.Y; y < topLeftPoint.Y + Math.Abs(this.listOfPoints.Last().Y - _mouseXY.Y); y++)
+                        {
+                            if (base.mainBitmap.GetPixel(x, y) != Color.FromArgb(255, 16, 89))
+                            {
+                                listOfLand.Add(new Point(x, y));
+                            }
+                        }
+                    }
+                    break;
+
+                case SelectionKinds.Arbitrary:
+
+                    break;
+            }*/
+        }
+
+        public void DeleteAPoint()
+        {
+            switch (this.selectionKind)
+            {
+                case SelectionKinds.Rectangular:
+
+                    break;
+
+                case SelectionKinds.Arbitrary:
+
+                    break;
+            }
+        }
         
 
         /*public void SetCenter(Point _mouseXY = new Point())

@@ -25,8 +25,8 @@ namespace Area_Finder_Too
 
         private Point imageCenter = new Point(-1, -1);
         private double pixelRatio = 11.24;
-        private enum WorkingState { Idle, WorkingOnSelection };
-        private WorkingState workingState = WorkingState.Idle;
+        private enum WorkingStates { Idle, WorkingOnSelection };
+        private WorkingStates workingState = WorkingStates.Idle;
 
         //Graphics received_canvas = null;
         //public int Width, Height;
@@ -108,30 +108,49 @@ namespace Area_Finder_Too
         }
 
         public void MouseClick(Point mouseLocation, MouseButtons mouseButton)
-        {
-            if (mouseButton == MouseButtons.Middle)
-                AddSeaColor(mouseLocation);
-            else    //Find out what control wants to do with selections
-            {   
-                switch (this.workingState)
-                {
-                    case WorkingState.Idle:
-                        if (mouseButton == MouseButtons.Left) 
-                            this.selections.Add(new Selection(Selection.KindOfSelection.Rectangular, mouseLocation));   //Create rectangular selection
-                        else 
-                            this.selections.Add(new Selection(Selection.KindOfSelection.Arbitrary, mouseLocation));    //Create arbitrary selection
-                        break;
-
-                    case WorkingState.WorkingOnSelection:
-                        if (mouseButton == MouseButtons.Left)   //Make something with rectangular selection
-                            if (selections.Last().kindOfSelection == Selection.KindOfSelection.Rectangular)
-                                Console.WriteLine("Make something;");
-                            else    //Make something with arbitrary selection
-                                this.selections.Add(new Selection(Selection.KindOfSelection.Arbitrary, mouseLocation));
-                        break;
-                }
+        {   
+            switch (mouseButton)
+            {
+                case MouseButtons.Middle:
+                    AddSeaColor(mouseLocation);
+                    break;
+                case MouseButtons.Left:
+                    switch (this.workingState)  //Find out what the control wants to do with the selection (presumably rectangular)
+                    {
+                        case WorkingStates.Idle:
+                            this.selections.Add(new Selection(Selection.SelectionKinds.Rectangular, mouseLocation));   //Create a rectangular selection
+                            break;
+                        case WorkingStates.WorkingOnSelection:  
+                            if (this.selections.Last().selectionKind == Selection.SelectionKinds.Rectangular)    //Finish the rectangular selection
+                            {
+                                this.selections.Last().AddAPoint(mouseLocation);
+                            }
+                            else    //Delete point or completely delete the arbitrary selection
+                            {
+                                this.selections.Last().DeleteAPoint();
+                            }
+                            break;
+                    }
+                    break;
+                case MouseButtons.Right:
+                    switch (this.workingState)  //Find out what control wants to do with the selection (presumably arbitrary)
+                    {
+                        case WorkingStates.Idle:
+                            this.selections.Add(new Selection(Selection.SelectionKinds.Arbitrary, mouseLocation));  //Create an arbitrary selection
+                            break;
+                        case WorkingStates.WorkingOnSelection:
+                            if (this.selections.Last().selectionKind == Selection.SelectionKinds.Arbitrary)    //Add point or finish the arbitrary selection
+                            {
+                                this.selections.Last().AddAPoint(mouseLocation);
+                            }
+                            else    //Delete the rectangular selection
+                            {
+                                this.selections.Last().DeleteAPoint();
+                            }
+                            break;
+                    }
+                    break;
             }
-            
             
             //Last selection in Selections is selection in work
 
