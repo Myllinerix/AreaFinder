@@ -118,12 +118,14 @@ namespace Area_Finder_Too
                     switch (this.workingState)  //Find out what the control wants to do with the selection (presumably rectangular)
                     {
                         case WorkingStates.Idle:
-                            this.selections.Add(new Selection(Selection.SelectionKinds.Rectangular, mouseLocation));   //Create a rectangular selection
+                            this.selections.Add(new RectangularSelection(mouseLocation));   //Create a rectangular selection
+                            this.workingState = WorkingStates.WorkingOnSelection;
                             break;
                         case WorkingStates.WorkingOnSelection:  
                             if (this.selections.Last().selectionKind == Selection.SelectionKinds.Rectangular)    //Finish the rectangular selection
                             {
                                 this.selections.Last().AddAPoint(mouseLocation);
+                                this.workingState = WorkingStates.Idle;
                             }
                             else    //Delete point or completely delete the arbitrary selection
                             {
@@ -136,7 +138,7 @@ namespace Area_Finder_Too
                     switch (this.workingState)  //Find out what control wants to do with the selection (presumably arbitrary)
                     {
                         case WorkingStates.Idle:
-                            this.selections.Add(new Selection(Selection.SelectionKinds.Arbitrary, mouseLocation));  //Create an arbitrary selection
+                            this.selections.Add(new ArbitrarySelection(mouseLocation));  //Create an arbitrary selection
                             break;
                         case WorkingStates.WorkingOnSelection:
                             if (this.selections.Last().selectionKind == Selection.SelectionKinds.Arbitrary)    //Add point or finish the arbitrary selection
