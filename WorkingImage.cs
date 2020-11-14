@@ -21,32 +21,17 @@ namespace Area_Finder_Too
 
         List<Selection> selections = new List<Selection>();
 
-        //private List
-
         private Point imageCenter = new Point(-1, -1);
         private double pixelRatio = 11.24;
-        private enum WorkingStates { Idle, WorkingOnSelection };
+        public enum WorkingStates { Idle, WorkingOnSelection };
         private WorkingStates workingState = WorkingStates.Idle;
-
-        //Graphics received_canvas = null;
-        //public int Width, Height;
+        public WorkingStates WorkingState { get { return workingState; } }
 
         public WorkingImage(string _fileName)
         {
             this.baseBitmap = new Bitmap(_fileName);
             this.outputBitmap = (Bitmap)this.baseBitmap.Clone();
-            
-            /*Rectangle transparentRectangle = new Rectangle(0, 0, outputBitmap.Width, outputBitmap.Height);
-            Brush transparentBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0));
-            using (Graphics g = Graphics.FromImage(foregroundOutput))
-                g.FillRectangle(transparentBrush, transparentRectangle);
-            foregroundOutput.MakeTransparent();*/
         }
-
-        /*public void RedrawForeground()
-        {
-
-        }*/
 
         public void SetPixelRatio(double received_Ratio)
         {
@@ -56,21 +41,6 @@ namespace Area_Finder_Too
         public string SelectionInfo()
         {
             return "Something definetely happened";
-        }
-
-        private void UpdateOutputBitmap()
-        {
-
-        }
-
-        public void SetRectanglePoint()
-        {
-
-        }
-
-        public void SetArbitraryPoint()
-        {
-
         }
 
         public void AddSeaColor(Point mouseLocation)
@@ -86,117 +56,121 @@ namespace Area_Finder_Too
 
         public void SetCenterPoint(Point mouseLocation)
         {
-            /*List<Bitmap> bitmaps = new List<Bitmap>();
-            bitmaps.Add(mainBitmap);
-            bitmaps.Add(arbitraryBitmap);
-            bitmaps.Add(outputBitmap);*/
-            //foreach (Bitmap _bitmap in bitmaps)
-
-            /*if (this.imageCenter != new Point(-1, -1))
-            {
-
-            }*/
-            
-            Pen bluePen = new Pen(Color.DarkBlue, 3), whitePen = new Pen(Color.White, 5);
-            //r.DrawImage(this.outputBitmap, 0, 0, this.outputBitmap.Width, this.outputBitmap.Height);
-            Graphics outputGraphics = Graphics.FromImage(this.outputBitmap);
-            outputGraphics.DrawLine(whitePen, mouseLocation.X, mouseLocation.Y - 9, mouseLocation.X, mouseLocation.Y + 10);
-            outputGraphics.DrawLine(whitePen, mouseLocation.X - 9, mouseLocation.Y, mouseLocation.X + 10, mouseLocation.Y);
-            outputGraphics.DrawLine(bluePen, mouseLocation.X, mouseLocation.Y - 9, mouseLocation.X, mouseLocation.Y + 10);
-            outputGraphics.DrawLine(bluePen, mouseLocation.X - 9, mouseLocation.Y, mouseLocation.X + 10, mouseLocation.Y);
             this.imageCenter = mouseLocation;
         }
 
-        public void MouseClick(Point mouseLocation, MouseButtons mouseButton)
-        {   
-            switch (mouseButton)
+        public void OutputBitmap()
+        {
+            this.outputBitmap = (Bitmap)this.baseBitmap.Clone();
+            Graphics outputGraphics = Graphics.FromImage(this.outputBitmap);
+
+            foreach (Selection selection in selections)
             {
-                case MouseButtons.Middle:
-                    AddSeaColor(mouseLocation);
-                    break;
+                switch (selection.Kind)
+                {
+                    case Selection.SelectionKinds.Rectangular:
+                        if (selection.isFinished)
+                        {
+
+                        }
+                        else
+                        {
+                            outputGraphics.DrawRectangle(new Pen(Color.Aquamarine, 2), selection.RectangularOutline);
+                        }
+                        break;
+                    case Selection.SelectionKinds.Arbitrary:
+                        if (selection.isFinished)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                        break;
+                }
+            }
+
+            if (imageCenter != new Point(-1, -1))
+            {
+                Pen bluePen = new Pen(Color.DarkBlue, 3), whitePen = new Pen(Color.White, 5);
+
+                outputGraphics.DrawLine(whitePen, imageCenter.X, imageCenter.Y - 9, imageCenter.X, imageCenter.Y + 10);
+                outputGraphics.DrawLine(whitePen, imageCenter.X - 9, imageCenter.Y, imageCenter.X + 10, imageCenter.Y);
+                outputGraphics.DrawLine(bluePen, imageCenter.X, imageCenter.Y - 9, imageCenter.X, imageCenter.Y + 10);
+                outputGraphics.DrawLine(bluePen, imageCenter.X - 9, imageCenter.Y, imageCenter.X + 10, imageCenter.Y);
+            }
+        }
+
+        public void ChangeCurrentSelection(Point mouseLocation, MouseButtons mouseButton)
+        {
+            switch (mouseButton) //Find out what the control wants to do with the selection
+            {
                 case MouseButtons.Left:
-                    switch (this.workingState)  //Find out what the control wants to do with the selection (presumably rectangular)
+                    if (this.selections.Last().Kind == Selection.SelectionKinds.Rectangular)    //Finish the rectangular selection
                     {
-                        case WorkingStates.Idle:
-                            this.selections.Add(new RectangularSelection(mouseLocation));   //Create a rectangular selection
-                            this.workingState = WorkingStates.WorkingOnSelection;
-                            break;
-                        case WorkingStates.WorkingOnSelection:  
-                            if (this.selections.Last().selectionKind == Selection.SelectionKinds.Rectangular)    //Finish the rectangular selection
-                            {
-                                this.selections.Last().AddAPoint(mouseLocation);
-                                this.workingState = WorkingStates.Idle;
-                            }
-                            else    //Delete point or completely delete the arbitrary selection
-                            {
-                                this.selections.Last().DeleteAPoint();
-                            }
-                            break;
+                        this.selections.Last().AddAPoint(mouseLocation);
+                        this.workingState = WorkingStates.Idle;
+                    }
+                    else    //Delete point or completely delete the arbitrary selection
+                    {
+                        this.selections.Last().DeleteAPoint();
                     }
                     break;
+
                 case MouseButtons.Right:
-                    switch (this.workingState)  //Find out what control wants to do with the selection (presumably arbitrary)
+                    if (this.selections.Last().Kind == Selection.SelectionKinds.Arbitrary)    //Add point or finish the arbitrary selection
                     {
-                        case WorkingStates.Idle:
-                            this.selections.Add(new ArbitrarySelection(mouseLocation));  //Create an arbitrary selection
-                            break;
-                        case WorkingStates.WorkingOnSelection:
-                            if (this.selections.Last().selectionKind == Selection.SelectionKinds.Arbitrary)    //Add point or finish the arbitrary selection
-                            {
-                                this.selections.Last().AddAPoint(mouseLocation);
-                            }
-                            else    //Delete the rectangular selection
-                            {
-                                this.selections.Last().DeleteAPoint();
-                            }
-                            break;
+                        this.selections.Last().AddAPoint(mouseLocation);
+                    }
+                    else    //Delete the rectangular selection
+                    {
+                        this.selections.Last().DeleteAPoint();
                     }
                     break;
             }
-            
+        }
+
+        public void AddASelection(Point mouseLocation, Selection.SelectionKinds selectionKind)
+        {
+            switch (selectionKind)
+            {
+                case Selection.SelectionKinds.Rectangular:
+                    this.selections.Add(new RectangularSelection(mouseLocation)); //Create a rectangular selection
+                    this.workingState = WorkingStates.WorkingOnSelection;
+                    break;
+                case Selection.SelectionKinds.Arbitrary:
+                    this.selections.Add(new ArbitrarySelection(mouseLocation));  //Create an arbitrary selection
+                    this.workingState = WorkingStates.WorkingOnSelection;
+                    break;
+            }
+        }
+
+        public void MouseClick(Point mouseLocation, MouseButtons mouseButton)
+        {
+
             //Last selection in Selections is selection in work
 
             //Make to them corresponding changes
 
             //UpdateOutputBitmap
 
-            /*landArea = 0;
-            listOfLand.Clear();
-            switch (currentAct)
-            {
-                case CurrentAction.FirstPointRect:
-                    constPoint.X = _mouseXY.X; constPoint.Y = _mouseXY.Y;
-                    for (int x = constPoint.X - 1; x <= constPoint.X + 1; x++)
-                        for (int y = constPoint.Y - 1; y <= constPoint.Y + 1; y++)
-                            base.outputBitmap.SetPixel(x, y, Color.Cyan);
-                    currentAct = CurrentAction.SecondPointRect;
-                    break;
-
-                case CurrentAction.SecondPointRect:
-                    currentAct = CurrentAction.StayingStill;
-                    for (int x = topLeftPoint.X; x < topLeftPoint.X + Math.Abs(constPoint.X - _mouseXY.X); x++)
-                    {
-                        for (int y = topLeftPoint.Y; y < topLeftPoint.Y + Math.Abs(constPoint.Y - _mouseXY.Y); y++)
-                        {
-                            if (base.mainBitmap.GetPixel(x, y) != Color.FromArgb(255, 16, 89))
-                            {
-                                base.outputBitmap.SetPixel(x, y, Color.LightGreen);
-                                listOfLand.Add(new Point(x, y));
-                                landArea++;
-                            }
-                        }
-                    }
-                    CalculateCost(_mouseXY);
-                    break;
-
-                default:
-                    break;
-            }*/
         }
 
-        public void MouseMove(Point mouseLocation)
+        public void RedrawCurrentSelection(Point mouseLocation)
         {
+            switch (this.workingState)
+            {
+                case WorkingStates.Idle:
+                    //Do nothing?
+                    break;
 
+                case WorkingStates.WorkingOnSelection:
+                    //Calculate an outline for a selection;
+                    this.selections.Last().UpdateNextPointLocation(mouseLocation);
+                    this.selections.Last();
+                    break;
+            }
         }
     }
 

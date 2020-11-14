@@ -13,23 +13,35 @@ namespace Area_Finder_Too
     abstract class Selection
     {
         public enum SelectionKinds { Rectangular, Arbitrary };
-        public readonly SelectionKinds selectionKind;
+        protected SelectionKinds selectionKind;
+        public SelectionKinds Kind { get { return selectionKind; } }
 
-        protected List<Point> listOfPoints = new List<Point>();                     //Main list of singular points (for rectangular max count = 2)
-        protected List<List<Point>> listOfDotsAndLines = new List<List<Point>>();   //List of pixels belonging to outer sides of selection
-        protected List<Point> rawListOfLand = new List<Point>();                    //Raw list of land pixels not excluding sea pixels (area = listOfLand.Count)
+        protected Point topLeftPoint, bottomRightPoint;
+        protected Size sizeOfOutline;
+        protected Rectangle rectangularOutline;
+
+        public Point TopLeftPoint { get { return topLeftPoint; } }
+        public Point BottomRightPoint { get { return bottomRightPoint; } }
+        public Size SizeOfOutline { get { return sizeOfOutline; } }
+        public Rectangle RectangularOutline { get { return rectangularOutline; } }
+        
+
+        public List<Point> listOfPoints = new List<Point>();                     //Main list of singular points (for rectangular max count = 2)
+        //protected List<Point> listOfOutPointPixels = new List<Point>();             //List of pixels belonging to outer vertices of selection
+        //protected List<Point> listOfOutLinePixels = new List<Point>();              //List of pixels belonging to outer sides of selection
+        //protected List<Point> rawListOfLand = new List<Point>();                    //Raw list of land pixels not excluding sea pixels (area = listOfLand.Count)
+        public bool isFinished = false;
 
         public Selection(Point mousePosition)
         {
             this.listOfPoints.Add(mousePosition);
-            this.listOfDotsAndLines.Add(new List<Point>());
         }
 
         public abstract void UpdateNextPointLocation(Point mousePosition);
 
         public abstract void AddAPoint(Point mousePosition);
 
-        public abstract void DeleteAPoint();
+        public abstract bool DeleteAPoint();
 
         /*public void SetCenter(Point _mouseXY = new Point())
         {
@@ -285,39 +297,31 @@ namespace Area_Finder_Too
 
     class RectangularSelection : Selection
     {
-        private Point topLeftPoint, bottomRightPoint;
-        private Size sizeOfOutline;
-        private Rectangle rectangularOutline;
-
         public RectangularSelection(Point mouseLocation) : base (mouseLocation)
         {
-            for (int x = base.listOfPoints.Last().X - 1; x <= base.listOfPoints.Last().X + 1; x++)
-                for (int y = base.listOfPoints.Last().Y - 1; y <= base.listOfPoints.Last().Y + 1; y++)
-                    base.listOfDotsAndLines.Last().Add(new Point(x, y));
+            base.selectionKind = SelectionKinds.Rectangular;
         }
 
         public override void UpdateNextPointLocation(Point mousePosition)
         {
-            this.topLeftPoint = new Point(Math.Min(mousePosition.X, this.listOfPoints.Last().X),
-                Math.Min(mousePosition.Y, this.listOfPoints.Last().Y));
-            this.bottomRightPoint = new Point(Math.Max(mousePosition.X, this.listOfPoints.Last().X),
-                Math.Max(mousePosition.Y, this.listOfPoints.Last().Y));
+            base.topLeftPoint = new Point(Math.Min(mousePosition.X, base.listOfPoints.Last().X),
+                Math.Min(mousePosition.Y, base.listOfPoints.Last().Y));
+            base.bottomRightPoint = new Point(Math.Max(mousePosition.X, base.listOfPoints.Last().X),
+                Math.Max(mousePosition.Y, base.listOfPoints.Last().Y));
 
-            this.sizeOfOutline = new Size(this.bottomRightPoint.X - this.topLeftPoint.X, this.bottomRightPoint.Y - this.topLeftPoint.Y);
-            this.rectangularOutline = new Rectangle(this.topLeftPoint, this.sizeOfOutline);
+            base.sizeOfOutline = new Size(base.bottomRightPoint.X - base.topLeftPoint.X, base.bottomRightPoint.Y - base.topLeftPoint.Y);
+            base.rectangularOutline = new Rectangle(base.topLeftPoint, base.sizeOfOutline);
         }
 
         public override void AddAPoint(Point mousePosition)
         {
             base.listOfPoints.Add(mousePosition);
-            for (int x = this.topLeftPoint.X; x < this.bottomRightPoint.X; x++)
-                for (int y = this.topLeftPoint.Y; y < this.bottomRightPoint.Y; y++)
-                    base.rawListOfLand.Add(new Point(x, y));
         }
 
-        public override void DeleteAPoint()
+        public override bool DeleteAPoint()
         {
-
+            base.listOfPoints.RemoveAt(listOfPoints.Count - 1);
+            return true;
         }
     }
 
@@ -325,9 +329,7 @@ namespace Area_Finder_Too
     {
         public ArbitrarySelection(Point mouseLocation) : base(mouseLocation)
         {
-            for (int x = base.listOfPoints.Last().X - 2; x <= base.listOfPoints.Last().X + 2; x++)
-                for (int y = base.listOfPoints.Last().Y - 2; y <= base.listOfPoints.Last().Y + 2; y++)
-                    base.listOfDotsAndLines.Last().Add(new Point(x, y));
+            base.selectionKind = SelectionKinds.Arbitrary;
         }
 
         public override void UpdateNextPointLocation(Point mousePosition)
@@ -340,9 +342,13 @@ namespace Area_Finder_Too
 
         }
 
-        public override void DeleteAPoint()
+        public override bool DeleteAPoint()
         {
-
+            base.listOfPoints.RemoveAt(listOfPoints.Count - 1);
+            if (base.listOfPoints.Count == 0) 
+                return true;
+            else 
+                return false;
         }
     }
 }

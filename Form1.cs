@@ -43,7 +43,6 @@ namespace Area_Finder_Too
             {
                 case "C":
                     workingImage.SetCenterPoint(mouseLocation);
-
                     /*select.SetCenter(mouseXY);
                     select.CalculateCost();
                     pictureBox1.Image = select.outputBitmap;
@@ -60,6 +59,9 @@ namespace Area_Finder_Too
                         ActivateNumeric();
                     break;
             }
+
+            workingImage.OutputBitmap();
+            pictureBox1.Image = workingImage.Bitmap;
         }
 
         private void numericUpDown1_KeyDown(object sender, KeyEventArgs e)
@@ -145,15 +147,45 @@ namespace Area_Finder_Too
             //base.OnMouseMove(e);
             mouseLocation.X = e.X;
             mouseLocation.Y = e.Y;
-            workingImage.MouseMove(mouseLocation);
-
+            workingImage.RedrawCurrentSelection(mouseLocation);
+            
+            workingImage.OutputBitmap();
             pictureBox1.Image = workingImage.Bitmap;
             //this.Text = workingImage.SelectionInfo();
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
-            workingImage.MouseClick(mouseLocation, e.Button);
+            switch (e.Button)
+            {
+                case MouseButtons.Middle:
+                    workingImage.AddSeaColor(mouseLocation);
+                    break;
+                case MouseButtons.Left:
+                    switch (workingImage.WorkingState)
+                    {
+                        case WorkingImage.WorkingStates.Idle:
+                            workingImage.AddASelection(mouseLocation, Selection.SelectionKinds.Rectangular);  //Create a rectangular selection
+                            break;
+                        case WorkingImage.WorkingStates.WorkingOnSelection:
+                            workingImage.ChangeCurrentSelection(mouseLocation, MouseButtons.Left); //Change existing selection
+                            break;
+                    }
+                    break;
+                case MouseButtons.Right:
+                    switch (workingImage.WorkingState)
+                    {
+                        case WorkingImage.WorkingStates.Idle:
+                            workingImage.AddASelection(mouseLocation, Selection.SelectionKinds.Arbitrary);  //Create an arbitrary selection
+                            break;
+                        case WorkingImage.WorkingStates.WorkingOnSelection:
+                            workingImage.ChangeCurrentSelection(mouseLocation, MouseButtons.Right); //Change existing selection
+                            break;
+                    }
+                    break;
+            }
+            workingImage.OutputBitmap();
+            pictureBox1.Image = workingImage.Bitmap;
         }
     }
 }
