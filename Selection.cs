@@ -24,9 +24,12 @@ namespace Area_Finder_Too
         public Point BottomRightPoint { get { return bottomRightPoint; } }
         public Size SizeOfOutline { get { return sizeOfOutline; } }
         public Rectangle RectangularOutline { get { return rectangularOutline; } }
-        
 
-        public List<Point> listOfPoints = new List<Point>();                     //Main list of singular points (for rectangular max count = 2)
+        public List<Point> ListOfLand = new List<Point>();                          //List of land pixels (filled by the workingImage object)
+        public Point LandCenter = new Point(-1, -1);
+        public int Cost, LandArea, Area = 0;
+
+        protected List<Point> listOfPoints = new List<Point>();                       //Main list of singular points (for rectangular max count = 2)
         //protected List<Point> listOfOutPointPixels = new List<Point>();             //List of pixels belonging to outer vertices of selection
         //protected List<Point> listOfOutLinePixels = new List<Point>();              //List of pixels belonging to outer sides of selection
         //protected List<Point> rawListOfLand = new List<Point>();                    //Raw list of land pixels not excluding sea pixels (area = listOfLand.Count)
@@ -316,6 +319,7 @@ namespace Area_Finder_Too
         public override void AddAPoint(Point mousePosition)
         {
             base.listOfPoints.Add(mousePosition);
+            base.isFinished = true;
         }
 
         public override bool DeleteAPoint()

@@ -10,27 +10,22 @@ namespace Area_Finder_Too
 {
     class WorkingImage
     {
-        private Bitmap baseBitmap, outputBitmap;
-        public Bitmap Bitmap
-        {
-            get
-            {
-                return this.outputBitmap;
-            }
-        }
-
-        List<Selection> selections = new List<Selection>();
-
-        private Point imageCenter = new Point(-1, -1);
-        private double pixelRatio = 11.24;
+        private Bitmap baseBitmap, seaPixelsBitmap, outputBitmap;
+        public Bitmap Bitmap { get { return this.outputBitmap; } }
         public enum WorkingStates { Idle, WorkingOnSelection };
         private WorkingStates workingState = WorkingStates.Idle;
         public WorkingStates WorkingState { get { return workingState; } }
 
+        private List<Selection> selections = new List<Selection>();
+        private Point imageCenter = new Point(-1, -1);
+        private double pixelRatio = 11.24;
+        private int currentSelectionIndex = 0;
+
         public WorkingImage(string _fileName)
         {
             this.baseBitmap = new Bitmap(_fileName);
-            this.outputBitmap = (Bitmap)this.baseBitmap.Clone();
+            this.seaPixelsBitmap = (Bitmap)this.baseBitmap.Clone();
+            this.outputBitmap = (Bitmap)this.seaPixelsBitmap.Clone();
         }
 
         public void SetPixelRatio(double received_Ratio)
@@ -45,13 +40,14 @@ namespace Area_Finder_Too
 
         public void AddSeaColor(Point mouseLocation)
         {
-            Color seaColor = this.baseBitmap.GetPixel(mouseLocation.X, mouseLocation.Y);
-            for (int x = 0; x < this.baseBitmap.Width; x++)
-                for (int y = 0; y < this.baseBitmap.Height; y++)
-                    if ((this.baseBitmap.GetPixel(x, y).R >= seaColor.R - 15 && this.baseBitmap.GetPixel(x, y).R <= seaColor.R + 15) &&
-                        (this.baseBitmap.GetPixel(x, y).G >= seaColor.G - 15 && this.baseBitmap.GetPixel(x, y).G <= seaColor.G + 15) &&
-                        (this.baseBitmap.GetPixel(x, y).B >= seaColor.B - 15 && this.baseBitmap.GetPixel(x, y).B <= seaColor.B + 15))
-                        this.baseBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
+            Color seaColor = this.seaPixelsBitmap.GetPixel(mouseLocation.X, mouseLocation.Y);
+            for (int x = 0; x < this.seaPixelsBitmap.Width; x++)
+                for (int y = 0; y < this.seaPixelsBitmap.Height; y++)
+                    if ((this.seaPixelsBitmap.GetPixel(x, y).R >= seaColor.R - 15 && this.seaPixelsBitmap.GetPixel(x, y).R <= seaColor.R + 15) &&
+                        (this.seaPixelsBitmap.GetPixel(x, y).G >= seaColor.G - 15 && this.seaPixelsBitmap.GetPixel(x, y).G <= seaColor.G + 15) &&
+                        (this.seaPixelsBitmap.GetPixel(x, y).B >= seaColor.B - 15 && this.seaPixelsBitmap.GetPixel(x, y).B <= seaColor.B + 15))
+                        this.seaPixelsBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
+
         }
 
         public void SetCenterPoint(Point mouseLocation)
@@ -61,21 +57,21 @@ namespace Area_Finder_Too
 
         public void OutputBitmap()
         {
-            this.outputBitmap = (Bitmap)this.baseBitmap.Clone();
+            this.outputBitmap = (Bitmap)this.seaPixelsBitmap.Clone();
             Graphics outputGraphics = Graphics.FromImage(this.outputBitmap);
 
-            foreach (Selection selection in selections)
+            foreach (Selection selection in this.selections)
             {
                 switch (selection.Kind)
                 {
                     case Selection.SelectionKinds.Rectangular:
-                        if (selection.isFinished)
+                        if (selection.isFinished == false || selection == this.selections[this.currentSelectionIndex])
                         {
-
+                            outputGraphics.DrawRectangle(new Pen(Color.Aquamarine, 2), selection.RectangularOutline);
                         }
                         else
                         {
-                            outputGraphics.DrawRectangle(new Pen(Color.Aquamarine, 2), selection.RectangularOutline);
+                            
                         }
                         break;
                     case Selection.SelectionKinds.Arbitrary:
@@ -91,7 +87,7 @@ namespace Area_Finder_Too
                 }
             }
 
-            if (imageCenter != new Point(-1, -1))
+            if (this.imageCenter != new Point(-1, -1))
             {
                 Pen bluePen = new Pen(Color.DarkBlue, 3), whitePen = new Pen(Color.White, 5);
 
@@ -104,12 +100,15 @@ namespace Area_Finder_Too
 
         public void ChangeCurrentSelection(Point mouseLocation, MouseButtons mouseButton)
         {
+            Selection selection = this.selections.Last();
             switch (mouseButton) //Find out what the control wants to do with the selection
             {
                 case MouseButtons.Left:
-                    if (this.selections.Last().Kind == Selection.SelectionKinds.Rectangular)    //Finish the rectangular selection
+                    if (selection.Kind == Selection.SelectionKinds.Rectangular)    //Finish the rectangular selection
                     {
-                        this.selections.Last().AddAPoint(mouseLocation);
+                        selection.AddAPoint(mouseLocation);
+                        this.CalculateSelectionArea(selection);
+                        this.CalculateSelectionCost(selection);
                         this.workingState = WorkingStates.Idle;
                     }
                     else    //Delete point or completely delete the arbitrary selection
@@ -133,33 +132,19 @@ namespace Area_Finder_Too
 
         public void AddASelection(Point mouseLocation, Selection.SelectionKinds selectionKind)
         {
-            switch (selectionKind)
-            {
-                case Selection.SelectionKinds.Rectangular:
-                    this.selections.Add(new RectangularSelection(mouseLocation)); //Create a rectangular selection
-                    this.workingState = WorkingStates.WorkingOnSelection;
-                    break;
-                case Selection.SelectionKinds.Arbitrary:
-                    this.selections.Add(new ArbitrarySelection(mouseLocation));  //Create an arbitrary selection
-                    this.workingState = WorkingStates.WorkingOnSelection;
-                    break;
-            }
-        }
-
-        public void MouseClick(Point mouseLocation, MouseButtons mouseButton)
-        {
-
-            //Last selection in Selections is selection in work
-
-            //Make to them corresponding changes
-
-            //UpdateOutputBitmap
-
+            if (selectionKind == Selection.SelectionKinds.Rectangular)
+                this.selections.Add(new RectangularSelection(mouseLocation)); //Create a rectangular selection
+            else
+                this.selections.Add(new ArbitrarySelection(mouseLocation));  //Create an arbitrary selection
+            this.workingState = WorkingStates.WorkingOnSelection;
+            this.currentSelectionIndex = this.selections.Count - 1;
         }
 
         public void RedrawCurrentSelection(Point mouseLocation)
         {
-            switch (this.workingState)
+            if (this.workingState == WorkingStates.WorkingOnSelection)
+                this.selections.Last().UpdateNextPointLocation(mouseLocation);
+            /*switch (this.workingState)
             {
                 case WorkingStates.Idle:
                     //Do nothing?
@@ -168,9 +153,68 @@ namespace Area_Finder_Too
                 case WorkingStates.WorkingOnSelection:
                     //Calculate an outline for a selection;
                     this.selections.Last().UpdateNextPointLocation(mouseLocation);
-                    this.selections.Last();
                     break;
+            }*/
+        }
+
+        private void CalculateSelectionCost(Selection selection)
+        {
+            if (this.imageCenter.X != -1 && selection.ListOfLand.Count > 0)
+            {
+                Point pixelsSum = new Point(0, 0);
+                foreach (Point pixel in selection.ListOfLand)
+                {
+                    pixelsSum.X += pixel.X;
+                    pixelsSum.Y += pixel.Y;
+                }
+                selection.LandCenter.X = pixelsSum.X / selection.ListOfLand.Count;
+                selection.LandCenter.Y = pixelsSum.Y / selection.ListOfLand.Count;
+
+                double distanceFromCenter = Math.Sqrt(Math.Pow(Math.Abs(selection.LandCenter.X - this.imageCenter.X), 2)
+                    + Math.Pow(Math.Abs(selection.LandCenter.Y - this.imageCenter.Y), 2)) * this.pixelRatio;
+                selection.Cost = (int)(Math.Floor((selection.ListOfLand.Count * Math.Pow(this.pixelRatio, 2)) / (0.685 * distanceFromCenter)));
+
+                using (Graphics gr = Graphics.FromImage(this.outputBitmap))
+                {
+                    Pen bluePen = new Pen(Color.DarkBlue, 2), whitePen = new Pen(Color.White, 4);
+                    gr.DrawLine(whitePen, this.imageCenter, selection.LandCenter);
+                    gr.DrawLine(bluePen, this.imageCenter, selection.LandCenter);
+                    bluePen = new Pen(Color.DarkBlue, 3);
+                    whitePen = new Pen(Color.White, 5);
+                    gr.DrawLine(whitePen, selection.LandCenter.X, selection.LandCenter.Y - 9, selection.LandCenter.X, selection.LandCenter.Y + 10);
+                    gr.DrawLine(whitePen, selection.LandCenter.X - 9, selection.LandCenter.Y, selection.LandCenter.X + 10, selection.LandCenter.Y);
+                    gr.DrawLine(bluePen, selection.LandCenter.X, selection.LandCenter.Y - 9, selection.LandCenter.X, selection.LandCenter.Y + 10);
+                    gr.DrawLine(bluePen, selection.LandCenter.X - 9, selection.LandCenter.Y, selection.LandCenter.X + 10, selection.LandCenter.Y);
+                }
             }
+            selection.LandArea = (int)Math.Floor(selection.ListOfLand.Count * Math.Pow(this.pixelRatio, 2));
+            //selectionInfo = "Area Found! Action: " + currentAct + "; Total Area = " + area + "; Land Area = " + landArea + "; Cost = " + cost + ";";
+        }
+
+        private void CalculateSelectionArea(Selection selection)
+        {
+            for (int x = selection.TopLeftPoint.X; x < selection.BottomRightPoint.X; x++)
+            {
+                for (int y = selection.TopLeftPoint.Y; y < selection.BottomRightPoint.Y; y++)
+                {
+                    if (this.seaPixelsBitmap.GetPixel(x, y) != Color.FromArgb(255, 16, 89))
+                        selection.ListOfLand.Add(new Point(x, y));
+                    selection.Area++;
+                }
+            }
+        }
+
+        private void RecalculateSelections()
+        {
+            foreach (Selection selection in this.selections)
+            {
+
+            }
+        }
+
+        public void RevertSeaColors()
+        {
+            this.seaPixelsBitmap = (Bitmap)this.baseBitmap.Clone();
         }
     }
 

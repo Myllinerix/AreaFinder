@@ -48,18 +48,24 @@ namespace Area_Finder_Too
                     pictureBox1.Image = select.outputBitmap;
                     this.Text = select.selectionInfo;*/
                     break;
+
+                case "Z":
+                    workingImage.RevertSeaColors();
+                    break;
+
                 case "E":
                     Random random = new Random();
                     Color randomColor = new Color();
                     randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
                     Graphics.FromImage(workingImage.Bitmap).FillRectangle(new SolidBrush(randomColor), mouseLocation.X, mouseLocation.Y, 2000, 2000);
                     break;
+
                 case "R":
                     if (!numericUpDown1.Enabled)
                         ActivateNumeric();
                     break;
             }
-
+            
             workingImage.OutputBitmap();
             pictureBox1.Image = workingImage.Bitmap;
         }
