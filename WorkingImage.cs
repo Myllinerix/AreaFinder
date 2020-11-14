@@ -63,21 +63,22 @@ namespace Area_Finder_Too
 
             foreach (Selection selection in this.selections)
             {
+                Point previousArbitraryPoint = new Point(-1, -1);
                 switch (selection.Kind)
                 {
                     case Selection.SelectionKinds.Rectangular:
-                        if (selection.isFinished == false)
+                        if (selection.isFinished == false || selection == this.selections[this.currentSelectionIndex])
                         {
                             outputGraphics.DrawRectangle(new Pen(Color.Aquamarine, 2), selection.RectangularOutline);
                         }
-                        else if (selection == this.selections[this.currentSelectionIndex])
+                        
+                        if (selection == this.selections[this.currentSelectionIndex])
                         {
                             foreach (Point landPoint in selection.ListOfLand)
                                 outputBitmap.SetPixel(landPoint.X, landPoint.Y, Color.LightGreen);
-                            outputGraphics.DrawRectangle(new Pen(Color.Aquamarine, 2), selection.RectangularOutline);
                             if (this.imageCenter != new Point(-1, -1))
                             {
-                                Pen bluePen = new Pen(Color.DarkBlue, 2), whitePen = new Pen(Color.White, 4);
+                                Pen whitePen = new Pen(Color.White, 4), bluePen = new Pen(Color.DarkBlue, 2);
                                 outputGraphics.DrawLine(whitePen, this.imageCenter, selection.LandCenter);
                                 outputGraphics.DrawLine(bluePen, this.imageCenter, selection.LandCenter);
                                 bluePen = new Pen(Color.DarkBlue, 3);
@@ -96,13 +97,22 @@ namespace Area_Finder_Too
                     case Selection.SelectionKinds.Arbitrary:
                         if (selection.isFinished == false || selection == this.selections[this.currentSelectionIndex])
                         {
-                            
+                            outputGraphics.DrawLine(new Pen(Color.Aquamarine, 2), selection.ListOfPoints.Last(), selection.NextArbitraryPoint);
+                            foreach (Point arbitraryPoint in selection.ListOfPoints)
+                            {
+                                if (previousArbitraryPoint != new Point(-1, -1))
+                                {
+                                    outputGraphics.DrawLine(new Pen(Color.Aquamarine, 2), previousArbitraryPoint, arbitraryPoint);
+                                }
+                                previousArbitraryPoint = arbitraryPoint;
+                            }
                         }
-                        else if (selection == this.selections[this.currentSelectionIndex])
+
+                        if (selection == this.selections[this.currentSelectionIndex])
                         {
                             if (this.imageCenter != new Point(-1, -1))
                             {
-                                Pen bluePen = new Pen(Color.DarkBlue, 2), whitePen = new Pen(Color.White, 4);
+                                Pen whitePen = new Pen(Color.White, 4), bluePen = new Pen(Color.DarkBlue, 2);
                                 outputGraphics.DrawLine(whitePen, this.imageCenter, selection.LandCenter);
                                 outputGraphics.DrawLine(bluePen, this.imageCenter, selection.LandCenter);
                                 bluePen = new Pen(Color.DarkBlue, 3);
@@ -147,7 +157,15 @@ namespace Area_Finder_Too
                     }
                     else    //Delete point or completely delete the arbitrary selection
                     {
-                        this.selections.Last().DeleteAPoint();
+                        if (this.selections.Last().DeleteAPoint())
+                        {
+                            this.selections.RemoveAt(this.selections.Count - 1);
+                            this.workingState = WorkingStates.Idle;
+                            if (this.selections.Count > 0)
+                                this.currentSelectionIndex = this.selections.Count - 1;
+                            else
+                                this.currentSelectionIndex = 0;
+                        }
                     }
                     break;
 
@@ -158,7 +176,15 @@ namespace Area_Finder_Too
                     }
                     else    //Delete the rectangular selection
                     {
-                        this.selections.Last().DeleteAPoint();
+                        if (this.selections.Last().DeleteAPoint())
+                        {
+                            this.selections.RemoveAt(this.selections.Count - 1);
+                            this.workingState = WorkingStates.Idle;
+                            if (this.selections.Count > 0)
+                                this.currentSelectionIndex = this.selections.Count - 1;
+                            else
+                                this.currentSelectionIndex = 0;
+                        }
                     }
                     break;
             }

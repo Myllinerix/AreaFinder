@@ -16,20 +16,23 @@ namespace Area_Finder_Too
         protected SelectionKinds selectionKind;
         public SelectionKinds Kind { get { return selectionKind; } }
 
-        protected Point topLeftPoint, bottomRightPoint;
+        protected Point topLeftPoint, bottomRightPoint, nextArbitraryPoint;
         protected Size sizeOfOutline;
         protected Rectangle rectangularOutline;
 
         public Point TopLeftPoint { get { return topLeftPoint; } }
         public Point BottomRightPoint { get { return bottomRightPoint; } }
+        public Point NextArbitraryPoint { get { return nextArbitraryPoint; } }
         public Size SizeOfOutline { get { return sizeOfOutline; } }
         public Rectangle RectangularOutline { get { return rectangularOutline; } }
 
         public List<Point> ListOfLand = new List<Point>();                          //List of land pixels (filled by the workingImage object)
         public Point LandCenter = new Point(-1, -1);
         public int Cost, LandArea, Area = 0;
-
-        protected List<Point> listOfPoints = new List<Point>();                       //Main list of singular points (for rectangular max count = 2)
+        
+        protected List<Point> listOfPoints = new List<Point>();                     //Main list of singular points (for rectangular max count = 2)
+        public List<Point> ListOfPoints { get { return listOfPoints; } }
+                           
         //protected List<Point> listOfOutPointPixels = new List<Point>();             //List of pixels belonging to outer vertices of selection
         //protected List<Point> listOfOutLinePixels = new List<Point>();              //List of pixels belonging to outer sides of selection
         //protected List<Point> rawListOfLand = new List<Point>();                    //Raw list of land pixels not excluding sea pixels (area = listOfLand.Count)
@@ -331,19 +334,31 @@ namespace Area_Finder_Too
 
     class ArbitrarySelection : Selection
     {
+        private bool readyToFinish = false;
         public ArbitrarySelection(Point mouseLocation) : base(mouseLocation)
         {
             base.selectionKind = SelectionKinds.Arbitrary;
+            base.nextArbitraryPoint = mouseLocation;
         }
 
         public override void UpdateNextPointLocation(Point mousePosition)
         {
-            
+            base.nextArbitraryPoint = mousePosition;
+            for (int x = mousePosition.X - 2; x <= mousePosition.X + 2; x++)
+            {
+                for (int y = mousePosition.Y - 2; y <= mousePosition.Y + 2; y++)
+                {
+                    if (x == base.listOfPoints[0].X && y == base.listOfPoints[0].Y && base.listOfPoints.Count >= 3)
+                        this.readyToFinish = true;
+                    else
+                        this.readyToFinish = false;
+                }
+            }
         }
 
         public override void AddAPoint(Point mousePosition)
         {
-
+            base.listOfPoints.Add(mousePosition);
         }
 
         public override bool DeleteAPoint()
