@@ -16,27 +16,41 @@ namespace Area_Finder_Too
         protected SelectionKinds selectionKind;
         public SelectionKinds Kind { get { return selectionKind; } }
 
-        protected Point topLeftPoint, bottomRightPoint, nextArbitraryPoint;
+
+        //Universal fields:
+        protected List<Point> listOfPoints = new List<Point>();                     //Main list of singular points (for rectangular max count = 2)
+        protected Point topLeftPoint, bottomRightPoint;                             //Corner points of selection
+        private List<Point> listOfLand = new List<Point>();                         //List of land pixels (filled by the workingImage object)
+        protected bool isFinished = false;
+
+        public List<Point> ListOfPoints { get { return listOfPoints; } }
+        public Point TopLeftPoint { get { return topLeftPoint; } }
+        public Point BottomRightPoint { get { return bottomRightPoint; } }
+        public List<Point> ListOfLand { get => listOfLand; set => listOfLand = value; }
+        public bool IsFinished { get { return isFinished; } }
+
+
+        //Exclusively rectangular fields:
         protected Size sizeOfOutline;
         protected Rectangle rectangularOutline;
 
-        public Point TopLeftPoint { get { return topLeftPoint; } }
-        public Point BottomRightPoint { get { return bottomRightPoint; } }
-        public Point NextArbitraryPoint { get { return nextArbitraryPoint; } }
-        public Size SizeOfOutline { get { return sizeOfOutline; } }
         public Rectangle RectangularOutline { get { return rectangularOutline; } }
 
-        public List<Point> ListOfLand = new List<Point>();                          //List of land pixels (filled by the workingImage object)
-        public Point LandCenter = new Point(-1, -1);
+
+        //Exclusively arbitrary fields:
+        protected List<Point> outlinePoints = new List<Point>();                    //List of pixels, that belong to an otline of the selection
+        protected List<Point> innerPoints = new List<Point>();                      //List of pixels inside the selection
+        protected Point nextArbitraryPoint;
+
+        public Point NextArbitraryPoint { get { return nextArbitraryPoint; } }
+        public List<Point> OutlinePoints { get { return outlinePoints; } }
+        public List<Point> InnerPoints { get { return innerPoints; } }
+
+
+        //Public fields:
         public int Cost, LandArea, Area = 0;
-        
-        protected List<Point> listOfPoints = new List<Point>();                     //Main list of singular points (for rectangular max count = 2)
-        public List<Point> ListOfPoints { get { return listOfPoints; } }
-                           
-        //protected List<Point> listOfOutPointPixels = new List<Point>();             //List of pixels belonging to outer vertices of selection
-        //protected List<Point> listOfOutLinePixels = new List<Point>();              //List of pixels belonging to outer sides of selection
-        //protected List<Point> rawListOfLand = new List<Point>();                    //Raw list of land pixels not excluding sea pixels (area = listOfLand.Count)
-        public bool isFinished = false;
+        public Point landCenter = new Point(-1, -1);                                //Mean point between all landPixels
+
 
         public Selection(Point mousePosition)
         {
@@ -322,6 +336,7 @@ namespace Area_Finder_Too
         public override void AddAPoint(Point mousePosition)
         {
             base.listOfPoints.Add(mousePosition);
+            base.Area = base.sizeOfOutline.Width * base.sizeOfOutline.Height;
             base.isFinished = true;
         }
 
@@ -334,7 +349,9 @@ namespace Area_Finder_Too
 
     class ArbitrarySelection : Selection
     {
-        private bool readyToFinish = false;
+        private List<Point> somePoints = new List<Point>();
+        private List<Point> EnlargedOutlinePoints = new List<Point>();
+
         public ArbitrarySelection(Point mouseLocation) : base(mouseLocation)
         {
             base.selectionKind = SelectionKinds.Arbitrary;
@@ -343,22 +360,105 @@ namespace Area_Finder_Too
 
         public override void UpdateNextPointLocation(Point mousePosition)
         {
-            base.nextArbitraryPoint = mousePosition;
-            for (int x = mousePosition.X - 2; x <= mousePosition.X + 2; x++)
-            {
-                for (int y = mousePosition.Y - 2; y <= mousePosition.Y + 2; y++)
-                {
-                    if (x == base.listOfPoints[0].X && y == base.listOfPoints[0].Y && base.listOfPoints.Count >= 3)
-                        this.readyToFinish = true;
-                    else
-                        this.readyToFinish = false;
-                }
-            }
+            if (mousePosition.X > base.listOfPoints[0].X - 12 && mousePosition.X < base.listOfPoints[0].X + 12
+                && mousePosition.Y > base.listOfPoints[0].Y - 12 && mousePosition.Y < base.listOfPoints[0].Y + 12 && base.listOfPoints.Count >= 3)
+                base.nextArbitraryPoint = base.listOfPoints[0];
+            else
+                base.nextArbitraryPoint = mousePosition;
         }
 
         public override void AddAPoint(Point mousePosition)
         {
-            base.listOfPoints.Add(mousePosition);
+            if (base.nextArbitraryPoint == base.listOfPoints[0])
+            {
+                base.listOfPoints.Add(base.nextArbitraryPoint);
+                base.topLeftPoint = mousePosition; base.bottomRightPoint = new Point(0, 0); //Corner points of rectangle, that contains arbitrary selection
+                Point previousPoint = new Point(-100, -100);
+                
+                //Find outline pixels and pit them into outlinePoints:
+                foreach (Point arbitraryPoint in base.listOfPoints)                         
+                {
+                    if (base.topLeftPoint.X > arbitraryPoint.X) base.topLeftPoint.X = arbitraryPoint.X;
+                    if (base.topLeftPoint.Y > arbitraryPoint.Y) base.topLeftPoint.Y = arbitraryPoint.Y;
+                    if (base.bottomRightPoint.X < arbitraryPoint.X) base.bottomRightPoint.X = arbitraryPoint.X;
+                    if (base.bottomRightPoint.Y < arbitraryPoint.Y) base.bottomRightPoint.Y = arbitraryPoint.Y;
+                    if (previousPoint != new Point(-100, -100))
+                    {
+                        if (previousPoint.X == arbitraryPoint.X)
+                            previousPoint.X++;
+                        Point min = new Point(), max = new Point();
+                        min.X = Math.Min(previousPoint.X, arbitraryPoint.X);
+                        max.X = Math.Max(previousPoint.X, arbitraryPoint.X);
+                        min.Y = Math.Min(previousPoint.Y, arbitraryPoint.Y);
+                        max.Y = Math.Max(previousPoint.Y, arbitraryPoint.Y);
+                        double tangent = (double)(previousPoint.Y - arbitraryPoint.Y) / (double)(previousPoint.X - arbitraryPoint.X);
+                        double step = Math.Abs(1 / tangent) / 1.1;
+                        if (step > 1)
+                            step = 1;
+                        for (double x = 0; x <= max.X - min.X; x += step)
+                        {
+                            int y;
+                            if (tangent > 0)
+                                y = (int)Math.Round(x * tangent) + min.Y;
+                            else
+                                y = (int)Math.Round(x * tangent) + max.Y;
+                            for (int i = (int)Math.Round(x) + min.X - 1; i < (int)Math.Round(x) + min.X + 1; i++)
+                                for (int j = y - 1; j < y + 1; j++)
+                                    if (base.outlinePoints.Contains(new Point(i, j)) == false)
+                                        base.outlinePoints.Add(new Point(i, j));
+                        }
+                    }
+                }
+
+                //Find EnlargedOutline to calculate innerPoints:
+                for (int x = topLeftPoint.X - 15; x <= base.bottomRightPoint.X + 15; x++)
+                {
+                    this.EnlargedOutlinePoints.Add(new Point(x, base.topLeftPoint.Y - 15));
+                    this.EnlargedOutlinePoints.Add(new Point(x, base.bottomRightPoint.Y + 15));
+                }
+                for (int y = topLeftPoint.Y - 14; y <= base.bottomRightPoint.Y + 14; y++)
+                {
+                    this.EnlargedOutlinePoints.Add(new Point(base.topLeftPoint.X - 15, y));
+                    this.EnlargedOutlinePoints.Add(new Point(base.bottomRightPoint.X + 15, y));
+                }
+
+                
+                //List<Point> outerPoints = new List<Point>();
+                //List<Point> innerPoints = new List<Point>();
+
+                Point randomNotAnOutlinePoint = new Point(-100, -100);
+                while (randomNotAnOutlinePoint != new Point(-100, -100))
+                {
+                    Random random = new Random();
+                    Point randomHopefullyNotAnOutlinePoint;
+                    Point randomOutlinePoint = base.ListOfPoints[random.Next(base.ListOfPoints.Count)];
+                    randomHopefullyNotAnOutlinePoint = new Point(randomOutlinePoint.X + random.Next(-9, 10),
+                                                                        randomOutlinePoint.Y + random.Next(-9, 10));
+                    if (base.OutlinePoints.Contains(randomHopefullyNotAnOutlinePoint) == false)
+                        randomNotAnOutlinePoint = randomHopefullyNotAnOutlinePoint;
+                }
+
+                bool somePointsIsAnOuterPoints = this.CheckAPoint(randomNotAnOutlinePoint, false);
+                if (somePointsIsAnOuterPoints)
+                {
+                    for (int x = topLeftPoint.X - 14; x <= base.bottomRightPoint.X + 14; x++)
+                    {
+                        for (int y = topLeftPoint.Y - 14; y <= base.bottomRightPoint.Y + 14; y++)
+                        {
+                            if ((this.somePoints.Contains(new Point(x, y)) || base.outlinePoints.Contains(new Point(x, y))) == false)
+                            {
+                                base.innerPoints.Add(new Point(x, y));
+                            }
+                        }
+                    }
+                }
+                else
+                    base.innerPoints = this.somePoints;
+
+                base.isFinished = true;
+            }
+            else
+                base.listOfPoints.Add(mousePosition);
         }
 
         public override bool DeleteAPoint()
@@ -368,6 +468,30 @@ namespace Area_Finder_Too
                 return true;
             else 
                 return false;
+        }
+
+        private bool CheckAPoint(Point recieved_point, bool isDefinetelyAnOuterPoint)
+        {
+            if (this.EnlargedOutlinePoints.Contains(recieved_point)) //In EnlargedOutline
+                return true;
+
+            if (base.outlinePoints.Contains(recieved_point) || this.somePoints.Contains(recieved_point)) //In outline
+                return isDefinetelyAnOuterPoint;
+            
+            this.somePoints.Add(recieved_point);
+            if (this.somePoints.Contains(new Point(recieved_point.X + 1, recieved_point.Y)) == false)
+                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X + 1, recieved_point.Y), isDefinetelyAnOuterPoint);
+
+            if (this.somePoints.Contains(new Point(recieved_point.X - 1, recieved_point.Y)) == false)
+                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X - 1, recieved_point.Y), isDefinetelyAnOuterPoint);
+
+            if (this.somePoints.Contains(new Point(recieved_point.X, recieved_point.Y + 1)) == false)
+                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X, recieved_point.Y + 1), isDefinetelyAnOuterPoint);
+
+            if (this.somePoints.Contains(new Point(recieved_point.X, recieved_point.Y - 1)) == false)
+                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X, recieved_point.Y - 1), isDefinetelyAnOuterPoint);
+
+            return isDefinetelyAnOuterPoint;
         }
     }
 }

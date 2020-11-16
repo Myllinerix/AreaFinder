@@ -43,10 +43,6 @@ namespace Area_Finder_Too
             {
                 case "C":
                     workingImage.SetCenterPoint(mouseLocation);
-                    /*select.SetCenter(mouseXY);
-                    select.CalculateCost();
-                    pictureBox1.Image = select.outputBitmap;
-                    this.Text = select.selectionInfo;*/
                     break;
 
                 case "Z":
@@ -76,50 +72,6 @@ namespace Area_Finder_Too
                 DeactivateNumeric();
         }
 
-        /*private void pictureBox111_MouseClick(object sender, MouseEventArgs e)
-        {
-            //Left
-
-            if (select.currentAct == Selection.CurrentAction.NextPointArb)
-                RecreateEverything();
-            else
-            {
-                if (select.currentAct != Selection.CurrentAction.SecondPointRect)
-                    select.currentAct = Selection.CurrentAction.FirstPointRect;
-                select.SetPointRect(mouseXY);
-                pictureBox1.Image = select.outputBitmap;
-                this.Text = select.selectionInfo;
-            }
-
-            //Right
-
-            if (select.currentAct == Selection.CurrentAction.SecondPointRect)
-                RecreateEverything();
-            else
-            {
-                if (select.currentAct != Selection.CurrentAction.NextPointArb)
-                    select.currentAct = Selection.CurrentAction.FirstPointArb;
-                select.SetPointArb(mouseXY);
-                pictureBox1.Image = select.outputBitmap;
-                this.Text = select.selectionInfo;
-            }
-
-            //Middle
-
-            select.AddSeaColor(mouseXY);
-            RecreateEverything();
-        }*/
-
-        /*private void RecreateEverything()
-        {
-            select.currentAct = Selection.CurrentAction.StayingStill;
-            select.RecreateOutputBitmapFromMain();
-            select.RecreateArbBitmap();
-            pictureBox1.Image = select.outputBitmap;
-            select.selectionInfo = "Area Finder";
-            this.Text = select.selectionInfo;
-        }*/
-
         private void ActivateNumeric()
         {
             for (int i = -36; i <= 0; i++)
@@ -146,17 +98,19 @@ namespace Area_Finder_Too
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             pictureBox1.Image = workingImage.Bitmap;
+            workingImage.ReadyToNextUpdate = true;
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            //base.OnMouseMove(e);
-            mouseLocation.X = e.X;
-            mouseLocation.Y = e.Y;
-            workingImage.RedrawCurrentSelection(mouseLocation);
-            
-            workingImage.OutputBitmap();
-            pictureBox1.Image = workingImage.Bitmap;
+            if (workingImage.ReadyToNextUpdate == true)
+            {   
+                mouseLocation.X = e.X;
+                mouseLocation.Y = e.Y;
+                workingImage.RedrawCurrentSelection(mouseLocation);
+                workingImage.OutputBitmap();
+                pictureBox1.Invalidate();
+            }
             //this.Text = workingImage.SelectionInfo();
         }
 
@@ -191,7 +145,7 @@ namespace Area_Finder_Too
                     break;
             }
             workingImage.OutputBitmap();
-            pictureBox1.Image = workingImage.Bitmap;
+            pictureBox1.Invalidate();
         }
     }
 }
