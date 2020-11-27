@@ -83,14 +83,14 @@ namespace Area_Finder_Too
                             if (this.imageCenter != new Point(-1, -1))
                             {
                                 Pen whitePen = new Pen(Color.White, 4), bluePen = new Pen(Color.DarkBlue, 2);
-                                outputGraphics.DrawLine(whitePen, this.imageCenter, selection.landCenter);
-                                outputGraphics.DrawLine(bluePen, this.imageCenter, selection.landCenter);
+                                outputGraphics.DrawLine(whitePen, this.imageCenter, selection.LandCenter);
+                                outputGraphics.DrawLine(bluePen, this.imageCenter, selection.LandCenter);
                                 bluePen = new Pen(Color.DarkBlue, 3);
                                 whitePen = new Pen(Color.White, 5);
-                                outputGraphics.DrawLine(whitePen, selection.landCenter.X, selection.landCenter.Y - 9, selection.landCenter.X, selection.landCenter.Y + 10);
-                                outputGraphics.DrawLine(whitePen, selection.landCenter.X - 9, selection.landCenter.Y, selection.landCenter.X + 10, selection.landCenter.Y);
-                                outputGraphics.DrawLine(bluePen, selection.landCenter.X, selection.landCenter.Y - 9, selection.landCenter.X, selection.landCenter.Y + 10);
-                                outputGraphics.DrawLine(bluePen, selection.landCenter.X - 9, selection.landCenter.Y, selection.landCenter.X + 10, selection.landCenter.Y);
+                                outputGraphics.DrawLine(whitePen, selection.LandCenter.X, selection.LandCenter.Y - 9, selection.LandCenter.X, selection.LandCenter.Y + 10);
+                                outputGraphics.DrawLine(whitePen, selection.LandCenter.X - 9, selection.LandCenter.Y, selection.LandCenter.X + 10, selection.LandCenter.Y);
+                                outputGraphics.DrawLine(bluePen, selection.LandCenter.X, selection.LandCenter.Y - 9, selection.LandCenter.X, selection.LandCenter.Y + 10);
+                                outputGraphics.DrawLine(bluePen, selection.LandCenter.X - 9, selection.LandCenter.Y, selection.LandCenter.X + 10, selection.LandCenter.Y);
                             }
                         }
                         break;
@@ -111,18 +111,22 @@ namespace Area_Finder_Too
 
                         if (selection.IsFinished == true && selection == this.selections[this.currentSelectionIndex])
                         {
+                            foreach (Point landPoint in selection.ListOfLand)
+                                outputBitmap.SetPixel(landPoint.X, landPoint.Y, Color.LightGreen);
                             if (this.imageCenter != new Point(-1, -1))
                             {
                                 Pen whitePen = new Pen(Color.White, 4), bluePen = new Pen(Color.DarkBlue, 2);
-                                outputGraphics.DrawLine(whitePen, this.imageCenter, selection.landCenter);
-                                outputGraphics.DrawLine(bluePen, this.imageCenter, selection.landCenter);
+                                outputGraphics.DrawLine(whitePen, this.imageCenter, selection.LandCenter);
+                                outputGraphics.DrawLine(bluePen, this.imageCenter, selection.LandCenter);
                                 bluePen = new Pen(Color.DarkBlue, 3);
                                 whitePen = new Pen(Color.White, 5);
-                                outputGraphics.DrawLine(whitePen, selection.landCenter.X, selection.landCenter.Y - 9, selection.landCenter.X, selection.landCenter.Y + 10);
-                                outputGraphics.DrawLine(whitePen, selection.landCenter.X - 9, selection.landCenter.Y, selection.landCenter.X + 10, selection.landCenter.Y);
-                                outputGraphics.DrawLine(bluePen, selection.landCenter.X, selection.landCenter.Y - 9, selection.landCenter.X, selection.landCenter.Y + 10);
-                                outputGraphics.DrawLine(bluePen, selection.landCenter.X - 9, selection.landCenter.Y, selection.landCenter.X + 10, selection.landCenter.Y);
+                                outputGraphics.DrawLine(whitePen, selection.LandCenter.X, selection.LandCenter.Y - 9, selection.LandCenter.X, selection.LandCenter.Y + 10);
+                                outputGraphics.DrawLine(whitePen, selection.LandCenter.X - 9, selection.LandCenter.Y, selection.LandCenter.X + 10, selection.LandCenter.Y);
+                                outputGraphics.DrawLine(bluePen, selection.LandCenter.X, selection.LandCenter.Y - 9, selection.LandCenter.X, selection.LandCenter.Y + 10);
+                                outputGraphics.DrawLine(bluePen, selection.LandCenter.X - 9, selection.LandCenter.Y, selection.LandCenter.X + 10, selection.LandCenter.Y);
                             }
+                            foreach (Point landPoint in selection.OutlinePoints)
+                                outputBitmap.SetPixel(landPoint.X, landPoint.Y, Color.Indigo);
                         }
                         break;
                 }
@@ -175,6 +179,7 @@ namespace Area_Finder_Too
                             this.CalculateSelectionArea(selection);
                             this.CalculateSelectionCost(selection);
                             this.workingState = WorkingStates.Idle;
+                            //MessageBox.Show(this.selections.Last().PointsChecked.ToString() + " " + this.selections.Last().OutlinePoints.Count.ToString());
                         }
                     }
                     else    //Delete the rectangular selection
@@ -242,11 +247,11 @@ namespace Area_Finder_Too
                     pixelsSum.X += pixel.X;
                     pixelsSum.Y += pixel.Y;
                 }
-                selection.landCenter.X = pixelsSum.X / selection.ListOfLand.Count;
-                selection.landCenter.Y = pixelsSum.Y / selection.ListOfLand.Count;
+                selection.LandCenter.X = pixelsSum.X / selection.ListOfLand.Count;
+                selection.LandCenter.Y = pixelsSum.Y / selection.ListOfLand.Count;
 
-                double distanceFromCenter = Math.Sqrt(Math.Pow(Math.Abs(selection.landCenter.X - this.imageCenter.X), 2)
-                    + Math.Pow(Math.Abs(selection.landCenter.Y - this.imageCenter.Y), 2)) * this.pixelRatio;
+                double distanceFromCenter = Math.Sqrt(Math.Pow(Math.Abs(selection.LandCenter.X - this.imageCenter.X), 2)
+                    + Math.Pow(Math.Abs(selection.LandCenter.Y - this.imageCenter.Y), 2)) * this.pixelRatio;
                 selection.Cost = (int)(Math.Floor((selection.ListOfLand.Count * Math.Pow(this.pixelRatio, 2)) / (0.685 * distanceFromCenter)));
             }
             selection.LandArea = (int)Math.Floor(selection.ListOfLand.Count * Math.Pow(this.pixelRatio, 2));

@@ -49,7 +49,8 @@ namespace Area_Finder_Too
 
         //Public fields:
         public int Cost, LandArea, Area = 0;
-        public Point landCenter = new Point(-1, -1);                                //Mean point between all landPixels
+        public Point LandCenter = new Point(-1, -1);                                //Mean point between all landPixels
+        public int PointsChecked = 0;
 
 
         public Selection(Point mousePosition)
@@ -349,8 +350,14 @@ namespace Area_Finder_Too
 
     class ArbitrarySelection : Selection
     {
-        private List<Point> somePoints = new List<Point>();
-        private List<Point> EnlargedOutlinePoints = new List<Point>();
+        private List<Point> somePoints = new List<Point>();             //Points that could be an inner or outer points (unknown at that moment)
+        private List<Point> enlargedOutlinePoints = new List<Point>();  //Point of an enlarged outline of selection 
+                                                                        //It is used to find out, if the points are inner or outer. 
+                                                                        //If the "while" has reached any of such points, then they're outer and vice versa
+        
+        private List<Point> pointsToBeChecked = new List<Point>();      //List of points, that should be checked later
+        private bool[,] checkedPointsMatrix, pointsToBeCheckedMatrix;
+        private Point enlargedTopLeft;
 
         public ArbitrarySelection(Point mouseLocation) : base(mouseLocation)
         {
@@ -369,6 +376,7 @@ namespace Area_Finder_Too
 
         public override void AddAPoint(Point mousePosition)
         {
+            //Checking if the user is trying to finish the selection:
             if (base.nextArbitraryPoint == base.listOfPoints[0])
             {
                 base.listOfPoints.Add(base.nextArbitraryPoint);
@@ -408,26 +416,31 @@ namespace Area_Finder_Too
                                         base.outlinePoints.Add(new Point(i, j));
                         }
                     }
+                    previousPoint = arbitraryPoint;
                 }
 
                 //Find EnlargedOutline to calculate innerPoints:
-                for (int x = topLeftPoint.X - 15; x <= base.bottomRightPoint.X + 15; x++)
+                for (int x = base.topLeftPoint.X - 15; x <= base.bottomRightPoint.X + 15; x++)
                 {
-                    this.EnlargedOutlinePoints.Add(new Point(x, base.topLeftPoint.Y - 15));
-                    this.EnlargedOutlinePoints.Add(new Point(x, base.bottomRightPoint.Y + 15));
+                    this.enlargedOutlinePoints.Add(new Point(x, base.topLeftPoint.Y - 15));
+                    this.enlargedOutlinePoints.Add(new Point(x, base.bottomRightPoint.Y + 15));
                 }
-                for (int y = topLeftPoint.Y - 14; y <= base.bottomRightPoint.Y + 14; y++)
+                for (int y = base.topLeftPoint.Y - 14; y <= base.bottomRightPoint.Y + 14; y++)
                 {
-                    this.EnlargedOutlinePoints.Add(new Point(base.topLeftPoint.X - 15, y));
-                    this.EnlargedOutlinePoints.Add(new Point(base.bottomRightPoint.X + 15, y));
+                    this.enlargedOutlinePoints.Add(new Point(base.topLeftPoint.X - 15, y));
+                    this.enlargedOutlinePoints.Add(new Point(base.bottomRightPoint.X + 15, y));
                 }
 
-                
-                //List<Point> outerPoints = new List<Point>();
-                //List<Point> innerPoints = new List<Point>();
+                //Create matrices of right size:
+                int bitmapWidth = (base.bottomRightPoint.X + 15) - (base.topLeftPoint.X - 15) + 1;
+                int bitmapHeight = (base.bottomRightPoint.Y + 15) - (base.topLeftPoint.Y - 15) + 1;
+                this.checkedPointsMatrix = new bool[bitmapWidth, bitmapHeight];
+                this.pointsToBeCheckedMatrix = new bool[bitmapWidth, bitmapHeight];
+                this.enlargedTopLeft = new Point(base.topLeftPoint.X - 15, base.topLeftPoint.Y - 15);
 
+                //Find any point, that is definetely not in the outline (inner or outer):
                 Point randomNotAnOutlinePoint = new Point(-100, -100);
-                while (randomNotAnOutlinePoint != new Point(-100, -100))
+                while (randomNotAnOutlinePoint == new Point(-100, -100))
                 {
                     Random random = new Random();
                     Point randomHopefullyNotAnOutlinePoint;
@@ -438,12 +451,26 @@ namespace Area_Finder_Too
                         randomNotAnOutlinePoint = randomHopefullyNotAnOutlinePoint;
                 }
 
-                bool somePointsIsAnOuterPoints = this.CheckAPoint(randomNotAnOutlinePoint, false);
+                //Checking all points, that the algorithm will be ably to achive:
+                bool somePointsIsAnOuterPoints = false, everythingIsChecked = false;
+                somePointsIsAnOuterPoints = this.CheckAPoint(randomNotAnOutlinePoint, somePointsIsAnOuterPoints);
+                //MessageBox.Show("somePoints: " + somePoints.Count + " checkedPointsArr:" + checkedPointsMatrix.Length + " pointsToBeChecked: " + pointsToBeChecked.Count);
+                while (!everythingIsChecked)
+                {
+                    Random random = new Random();
+                    if (pointsToBeChecked.Count > 0)
+                        somePointsIsAnOuterPoints = this.CheckAPoint(pointsToBeChecked.Last(), somePointsIsAnOuterPoints);
+                    else
+                        everythingIsChecked = true;
+                }
+                //MessageBox.Show("somePoints: " + somePoints.Count + " checkedPointsArr:" + checkedPointsMatrix.Length + " pointsToBeChecked: " + pointsToBeChecked.Count);
+
+                //If the points is outer, then filling base.innerPoints with all points exept known, if inner, then simply coping them:
                 if (somePointsIsAnOuterPoints)
                 {
-                    for (int x = topLeftPoint.X - 14; x <= base.bottomRightPoint.X + 14; x++)
+                    for (int x = base.topLeftPoint.X - 14; x <= base.bottomRightPoint.X + 14; x++)
                     {
-                        for (int y = topLeftPoint.Y - 14; y <= base.bottomRightPoint.Y + 14; y++)
+                        for (int y = base.topLeftPoint.Y - 14; y <= base.bottomRightPoint.Y + 14; y++)
                         {
                             if ((this.somePoints.Contains(new Point(x, y)) || base.outlinePoints.Contains(new Point(x, y))) == false)
                             {
@@ -455,9 +482,10 @@ namespace Area_Finder_Too
                 else
                     base.innerPoints = this.somePoints;
 
+                //Declaring, that the selection is finished (finally...):
                 base.isFinished = true;
             }
-            else
+            else //If not, then simply adding the next point:
                 base.listOfPoints.Add(mousePosition);
         }
 
@@ -472,24 +500,63 @@ namespace Area_Finder_Too
 
         private bool CheckAPoint(Point recieved_point, bool isDefinetelyAnOuterPoint)
         {
-            if (this.EnlargedOutlinePoints.Contains(recieved_point)) //In EnlargedOutline
+            base.PointsChecked++;
+
+            //Changing all matrices and list:
+
+            this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y] = false;
+            this.pointsToBeChecked.Remove(new Point(recieved_point.X, recieved_point.Y));
+            this.checkedPointsMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y] = true;
+            
+            if (this.enlargedOutlinePoints.Contains(recieved_point)) //In EnlargedOutline
                 return true;
 
-            if (base.outlinePoints.Contains(recieved_point) || this.somePoints.Contains(recieved_point)) //In outline
+            if (base.outlinePoints.Contains(recieved_point)) //In outline
                 return isDefinetelyAnOuterPoint;
             
             this.somePoints.Add(recieved_point);
-            if (this.somePoints.Contains(new Point(recieved_point.X + 1, recieved_point.Y)) == false)
-                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X + 1, recieved_point.Y), isDefinetelyAnOuterPoint);
 
-            if (this.somePoints.Contains(new Point(recieved_point.X - 1, recieved_point.Y)) == false)
-                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X - 1, recieved_point.Y), isDefinetelyAnOuterPoint);
+            //Adding 4 surrounding points to matrix be checked later, if they are not already in pointsToBeCheckedMatrix
+            //And adding them after that to list corresponding to matrix
+            //Matrix is for easy access to exact point (to check, if the point is already going to be checked)
+            //Such check is need to ensure that no redundant points will be added to list
+            //List if for actual checking of points
 
-            if (this.somePoints.Contains(new Point(recieved_point.X, recieved_point.Y + 1)) == false)
-                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X, recieved_point.Y + 1), isDefinetelyAnOuterPoint);
+            if (this.checkedPointsMatrix[recieved_point.X - this.enlargedTopLeft.X + 1, recieved_point.Y - this.enlargedTopLeft.Y] == false)
+            {
+                if (!this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X + 1, recieved_point.Y - this.enlargedTopLeft.Y])
+                {
+                    this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X + 1, recieved_point.Y - this.enlargedTopLeft.Y] = true;
+                    this.pointsToBeChecked.Add(new Point(recieved_point.X + 1, recieved_point.Y));
+                }
+            }
 
-            if (this.somePoints.Contains(new Point(recieved_point.X, recieved_point.Y - 1)) == false)
-                isDefinetelyAnOuterPoint = this.CheckAPoint(new Point(recieved_point.X, recieved_point.Y - 1), isDefinetelyAnOuterPoint);
+            if (this.checkedPointsMatrix[recieved_point.X - this.enlargedTopLeft.X - 1, recieved_point.Y - this.enlargedTopLeft.Y] == false)
+            {
+                if (!this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X - 1, recieved_point.Y - this.enlargedTopLeft.Y])
+                {
+                    this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X - 1, recieved_point.Y - this.enlargedTopLeft.Y] = true;
+                    this.pointsToBeChecked.Add(new Point(recieved_point.X - 1, recieved_point.Y));
+                }
+            }
+
+            if (this.checkedPointsMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y + 1] == false)
+            {
+                if (!this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y + 1])
+                {
+                    this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y + 1] = true;
+                    this.pointsToBeChecked.Add(new Point(recieved_point.X, recieved_point.Y + 1));
+                }
+            }
+
+            if (this.checkedPointsMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y - 1] == false)
+            {
+                if (!this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y - 1])
+                {
+                    this.pointsToBeCheckedMatrix[recieved_point.X - this.enlargedTopLeft.X, recieved_point.Y - this.enlargedTopLeft.Y - 1] = true;
+                    this.pointsToBeChecked.Add(new Point(recieved_point.X, recieved_point.Y - 1));
+                }
+            }
 
             return isDefinetelyAnOuterPoint;
         }

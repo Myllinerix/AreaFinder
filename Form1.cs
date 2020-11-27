@@ -15,6 +15,7 @@ namespace Area_Finder_Too
     public partial class Form1 : Form
     {
         OpenFileDialog open = new OpenFileDialog();
+        bool dialogResultOK = false;
         WorkingImage workingImage;
         Point mouseLocation = new Point();
      
@@ -27,8 +28,7 @@ namespace Area_Finder_Too
                 this.Size = new Size(new Bitmap(open.FileName).Width + 14, new Bitmap(open.FileName).Height + 39);
                 pictureBox1.Dock = DockStyle.Fill;
                 workingImage = new WorkingImage(open.FileName);
-                //selection.RecreateArbBitmap();
-                //pictureBox1.Image = workingImage.baseBitmap;
+                dialogResultOK = true;
             }
         }
 
@@ -97,8 +97,13 @@ namespace Area_Finder_Too
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            pictureBox1.Image = workingImage.Bitmap;
-            workingImage.ReadyToNextUpdate = true;
+            if (dialogResultOK)
+            {
+                pictureBox1.Image = workingImage.Bitmap;
+                workingImage.ReadyToNextUpdate = true;
+            }
+            else
+                this.Close();
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
