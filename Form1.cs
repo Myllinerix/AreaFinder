@@ -56,7 +56,7 @@ namespace Area_Finder_Too
                     break;
 
                 case "A":
-                    workingImage.ShowAllSelectionsAtOnce();
+                    workingImage.SwitchShowingAllSelectionsAtOnce();
                     break;
 
                 case "D":

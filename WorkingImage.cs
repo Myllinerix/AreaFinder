@@ -59,7 +59,7 @@ namespace Area_Finder_Too
             this.RecalculateSelections();
         }
 
-        public void ShowAllSelectionsAtOnce()
+        public void SwitchShowingAllSelectionsAtOnce()
         {
             if (!this.showAllSelections)
                 this.showAllSelections = true;
@@ -78,7 +78,8 @@ namespace Area_Finder_Too
             this.outputBitmap = (Bitmap)this.seaPixelsBitmap.Clone();
             Graphics outputGraphics = Graphics.FromImage(this.outputBitmap);
 
-            foreach (Selection selection in this.selections)
+            //Output or try to output each and every selection:
+            foreach (Selection selection in this.selections) 
             {
                 Point previousArbitraryPoint = new Point(-1, -1);
                 switch (selection.Kind)
@@ -149,6 +150,7 @@ namespace Area_Finder_Too
                 }
             }
 
+            //Draw a cross in the center of the image, if such specified:
             if (this.imageCenter != new Point(-1, -1))
             {
                 Pen outerPen = new Pen(Color.White, 5), innerPen = new Pen(Color.DarkBlue, 3);
@@ -164,7 +166,9 @@ namespace Area_Finder_Too
         public void ChangeCurrentSelection(Point mouseLocation, MouseButtons mouseButton)
         {
             Selection selection = this.selections.Last();
-            switch (mouseButton) //Find out what the control wants to do with the selection
+            
+            //Find out what the control wants to do with the selection:
+            switch (mouseButton) 
             {
                 case MouseButtons.Left:
                     if (selection.Kind == Selection.SelectionKinds.Rectangular)    //Finish the rectangular selection
@@ -254,7 +258,6 @@ namespace Area_Finder_Too
 
         private void CalculateSelectionArea(Selection selection)
         {
-            
             selection.ListOfLand.Clear();
             switch (selection.Kind)
             {
