@@ -26,7 +26,6 @@ namespace Area_Finder_Too
             if (open.ShowDialog() == DialogResult.OK)
             {   
                 this.Size = new Size(new Bitmap(open.FileName).Width + 14, new Bitmap(open.FileName).Height + 39);
-                pictureBox1.Dock = DockStyle.Fill;
                 workingImage = new WorkingImage(open.FileName);
                 dialogResultOK = true;
             }
@@ -43,22 +42,35 @@ namespace Area_Finder_Too
             {
                 case "C":
                     workingImage.SetCenterPoint(mouseLocation);
+                    this.Text = workingImage.SelectionInfo();
                     break;
 
                 case "Z":
                     workingImage.RevertSeaColors();
-                    break;
-
-                case "E":
-                    Random random = new Random();
-                    Color randomColor = new Color();
-                    randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
-                    Graphics.FromImage(workingImage.Bitmap).FillRectangle(new SolidBrush(randomColor), mouseLocation.X, mouseLocation.Y, 2000, 2000);
+                    this.Text = workingImage.SelectionInfo();
                     break;
 
                 case "R":
                     if (!numericUpDown1.Enabled)
                         ActivateNumeric();
+                    break;
+
+                case "A":
+                    workingImage.ShowAllSelectionsAtOnce();
+                    break;
+
+                case "D":
+                    workingImage.DeleteASelection();
+                    break;
+
+                case "Down":
+                    workingImage.PreviousSelection();
+                    this.Text = workingImage.SelectionInfo();
+                    break;
+
+                case "Up":
+                    workingImage.NextSelection();
+                    this.Text = workingImage.SelectionInfo();
                     break;
             }
             
@@ -74,9 +86,10 @@ namespace Area_Finder_Too
 
         private void ActivateNumeric()
         {
-            for (int i = -36; i <= 0; i++)
+            panel1.BringToFront();
+            for (int y = -36; y <= 0; y++)
             {
-                panel1.Location = new Point(0, i);
+                panel1.Location = new Point(0, y);
                 Thread.Sleep(5);
             }
             numericUpDown1.Enabled = true;
@@ -93,6 +106,7 @@ namespace Area_Finder_Too
             }
             this.Focus();
             workingImage.SetPixelRatio((double)numericUpDown1.Value);
+            this.Text = workingImage.SelectionInfo();
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -116,7 +130,6 @@ namespace Area_Finder_Too
                 workingImage.OutputBitmap();
                 pictureBox1.Invalidate();
             }
-            //this.Text = workingImage.SelectionInfo();
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
@@ -151,6 +164,7 @@ namespace Area_Finder_Too
             }
             workingImage.OutputBitmap();
             pictureBox1.Invalidate();
+            this.Text = workingImage.SelectionInfo();
         }
     }
 }

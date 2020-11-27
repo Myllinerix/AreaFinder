@@ -22,12 +22,14 @@ namespace Area_Finder_Too
         protected Point topLeftPoint, bottomRightPoint;                             //Corner points of selection
         private List<Point> listOfLand = new List<Point>();                         //List of land pixels (filled by the workingImage object)
         protected bool isFinished = false;
-
+        protected int area;
+        
         public List<Point> ListOfPoints { get { return listOfPoints; } }
         public Point TopLeftPoint { get { return topLeftPoint; } }
         public Point BottomRightPoint { get { return bottomRightPoint; } }
         public List<Point> ListOfLand { get => listOfLand; set => listOfLand = value; }
         public bool IsFinished { get { return isFinished; } }
+        public int Area { get => area; set => area = value; }
 
 
         //Exclusively rectangular fields:
@@ -48,9 +50,10 @@ namespace Area_Finder_Too
 
 
         //Public fields:
-        public int Cost, LandArea, Area = 0;
+        public int Cost, LandArea;
         public Point LandCenter = new Point(-1, -1);                                //Mean point between all landPixels
         public int PointsChecked = 0;
+        public string SelectionInfo = "Area Finder";
 
 
         public Selection(Point mousePosition)
@@ -337,7 +340,6 @@ namespace Area_Finder_Too
         public override void AddAPoint(Point mousePosition)
         {
             base.listOfPoints.Add(mousePosition);
-            base.Area = base.sizeOfOutline.Width * base.sizeOfOutline.Height;
             base.isFinished = true;
         }
 
