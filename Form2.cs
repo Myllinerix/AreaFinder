@@ -25,7 +25,9 @@ namespace Area_Finder_Too
             else
             {
                 StreamWriter streamWriter = File.CreateText("README.txt");
-                streamWriter.Write(label1.Text);
+                ComponentResourceManager resources = new ComponentResourceManager(this.GetType());
+                streamWriter.WriteLine(resources.GetString("label1.Text"));
+                streamWriter.Close();
                 this.Hide();
                 Form1 form1 = new Form1();
                 form1.ShowDialog();

@@ -1,0 +1,11 @@
+C:\Users\Myllinerix\source\repos\Area Finder Too\bin\Release\Area Finder Too.exe.config
+C:\Users\Myllinerix\source\repos\Area Finder Too\bin\Release\Area Finder Too.exe
+C:\Users\Myllinerix\source\repos\Area Finder Too\bin\Release\Area Finder Too.pdb
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area Finder Too.csprojAssemblyReference.cache
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area_Finder_Too.Form1.resources
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area_Finder_Too.Form2.resources
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area_Finder_Too.Properties.Resources.resources
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area Finder Too.csproj.GenerateResource.cache
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area Finder Too.csproj.CoreCompileInputs.cache
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area Finder Too.exe
+C:\Users\Myllinerix\source\repos\Area Finder Too\obj\Release\Area Finder Too.pdb

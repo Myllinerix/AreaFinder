@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Area Finder Too")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Area Finder")]
+[assembly: AssemblyDescription("Tool to find an area of a selected area")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Area Finder Too")]
+[assembly: AssemblyCompany("Myllinerix unInc.")]
+[assembly: AssemblyProduct("Area Finder")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
