@@ -72,6 +72,15 @@ namespace Area_Finder_Too
                     workingImage.NextSelection();
                     this.Text = workingImage.SelectionInfo();
                     break;
+
+                case "T":
+                    workingImage.TriangulateSelection();
+                    break;
+
+                case "S":
+                    if (!numericUpDown1.Enabled)
+                        ActivateNumeric();
+                    break;
             }
             
             workingImage.OutputBitmap();

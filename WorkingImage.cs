@@ -20,6 +20,20 @@ namespace Area_Finder_Too
         private bool readyToNextUpdate = true;
         public bool ReadyToNextUpdate { get => readyToNextUpdate; set => readyToNextUpdate = value; }
 
+        private float triangulationResConst
+        {
+            get
+            {
+                return TriangulationResConst;
+            }
+            set
+            {
+                if (value > 0.05f && value <= 0.33f)
+                    TriangulationResConst = value;
+            }
+        }
+        public float TriangulationResConst;
+
         private List<Selection> selections = new List<Selection>();
         private Point imageCenter = new Point(-1, -1);
         private double pixelRatio = 11.24;
@@ -31,6 +45,7 @@ namespace Area_Finder_Too
             this.baseBitmap = new Bitmap(_fileName);
             this.seaPixelsBitmap = (Bitmap)this.baseBitmap.Clone();
             this.outputBitmap = (Bitmap)this.seaPixelsBitmap.Clone();
+            this.TriangulationResConst = 0.099f;
         }
 
         public void SetPixelRatio(double received_Ratio)
@@ -57,6 +72,14 @@ namespace Area_Finder_Too
                         (this.seaPixelsBitmap.GetPixel(x, y).B >= seaColor.B - 15 && this.seaPixelsBitmap.GetPixel(x, y).B <= seaColor.B + 15))
                         this.seaPixelsBitmap.SetPixel(x, y, Color.FromArgb(255, 16, 89));
             this.RecalculateSelections();
+        }
+
+        public void TriangulateSelection()
+        {
+            if(this.selections[this.currentSelectionIndex].IsFinished)
+            {
+                this.selections[this.currentSelectionIndex].Triangulate(this.TriangulationResConst);
+            }
         }
 
         public void SwitchShowingAllSelectionsAtOnce()

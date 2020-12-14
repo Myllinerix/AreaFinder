@@ -62,9 +62,8 @@ namespace Area_Finder_Too
         }
 
         public abstract void UpdateNextPointLocation(Point mousePosition);
-
+        public abstract void Triangulate(float resolutionConstant);
         public abstract void AddAPoint(Point mousePosition);
-
         public abstract bool DeleteAPoint();
     }
 
@@ -96,6 +95,11 @@ namespace Area_Finder_Too
         {
             base.listOfPoints.RemoveAt(listOfPoints.Count - 1);
             return true;
+        }
+
+        public override void Triangulate(float resolutionConstant)
+        {
+            
         }
     }
 
@@ -312,6 +316,11 @@ namespace Area_Finder_Too
             }
 
             return isDefinetelyAnOuterPoint;
+        }
+
+        public override void Triangulate(float resolutionConstant)
+        {
+            throw new NotImplementedException();
         }
     }
 }
